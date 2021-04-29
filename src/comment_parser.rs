@@ -1,26 +1,25 @@
 pub mod parser {
-  use html_parser::Dom;
-  use html_parser::Node;
-  use html_parser::Element;
   use std::collections::HashMap;
 
   use crate::comment_parser::parser::ParsingRule::CustomRule;
   use crate::rules::anchor::AnchorRuleHandler;
+  use crate::rules::span::SpanHandler;
   use crate::rules::rule_handler::RuleHandler;
   use crate::rules::line_break::LineBreakRuleHandler;
+  use crate::html_parser::element::Element;
 
-  #[derive(Debug)]
+  #[derive(Debug, PartialEq)]
   pub enum PostLink {
     Quote { post_no: u64 },
     ThreadLink { site_name: String, board_code: String, thread_no: u64, post_no: u64 }
   }
 
-  #[derive(Debug)]
+  #[derive(Debug, PartialEq)]
   pub enum SpannableData {
     Link(PostLink)
   }
 
-  #[derive(Debug)]
+  #[derive(Debug, PartialEq)]
   pub struct Spannable {
     pub start: i32,
     pub len: usize,
@@ -61,6 +60,7 @@ pub mod parser {
     pub fn add_default_rules(&mut self) {
       self.rules.insert(String::from("a"), ParsingRule::CustomRule(Box::new(AnchorRuleHandler::new())));
       self.rules.insert(String::from("br"), ParsingRule::CustomRule(Box::new(LineBreakRuleHandler::new())));
+      self.rules.insert(String::from("span"), ParsingRule::CustomRule(Box::new(SpanHandler::new())));
     }
 
     pub fn process_element(&self, element: &Element, out_text_parts: &mut Vec<String>, out_spannables: &mut Vec<Spannable>) -> bool {

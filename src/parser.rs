@@ -1,9 +1,9 @@
 pub mod parser {
-  use html_parser::Dom;
-  use html_parser::Node;
-  use html_parser::Element;
   use std::collections::HashMap;
   use crate::comment_parser::parser::{PostCommentParsed, Spannable, CommentParser};
+  use crate::PostRaw;
+  use crate::html_parser::node::Node;
+  use crate::html_parser::parser::HtmlParser;
 
   #[derive(Debug)]
   pub struct ParsedPost {
@@ -30,18 +30,29 @@ pub mod parser {
       return PostParser { comment_parser: Box::new(comment_parser) };
     }
 
+    pub fn parse_post(&self, post_raw: &PostRaw) -> ParsedPost {
+      let mut post = ParsedPost::new(Option::None);
+
+      let comment = post_raw.com.as_ref();
+      if comment.is_some() {
+        post.post_comment_parsed = self.parse_comment(comment.unwrap().as_str());
+      }
+
+      return post
+    }
+
     pub fn parse_comment(&self, comment_raw: &str) -> Option<PostCommentParsed> {
-      let parseResult = Dom::parse(comment_raw);
-      if (parseResult.is_err()) {
-        println!("Failed to parse comment_raw html, error={:?}", parseResult.err().unwrap());
+      let html_parser = HtmlParser::new();
+
+      let html_parsing_result = html_parser.parse(comment_raw);
+      if html_parsing_result.is_err() {
+        println!("Failed to parse comment_raw html, error={:?}", html_parsing_result.err().unwrap());
         return Option::None;
       }
 
-      let dom = parseResult.unwrap();
-
       let mut outTextParts: Vec<String> = Vec::new();
       let mut outSpannables: Vec<Spannable> = Vec::new();
-      self.parse_nodes(dom.children, &mut outTextParts, &mut outSpannables);
+      self.parse_nodes(html_parsing_result.unwrap(), &mut outTextParts, &mut outSpannables);
 
       let postCommentParsed = PostCommentParsed::new(
         Box::new(outTextParts.join("")),
@@ -67,7 +78,6 @@ pub mod parser {
               self.parse_nodes(element.children, out_text_parts, out_spannables);
             }
           },
-          Node::Comment(_) => continue,
         }
       }
     }

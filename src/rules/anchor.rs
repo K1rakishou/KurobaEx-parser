@@ -1,7 +1,8 @@
-use html_parser::{Element, Node};
 use crate::comment_parser::parser::{Spannable, PostLink, SpannableData};
 use crate::rules::rule_handler::RuleHandler;
 use std::num::ParseIntError;
+use crate::html_parser::element::Element;
+use crate::html_parser::node::Node;
 
 pub struct AnchorRuleHandler {}
 
@@ -34,11 +35,11 @@ impl RuleHandler for AnchorRuleHandler {
 
       match link_text_child {
         Node::Text(text) => {
-          let hrefValueMaybe = element.attributes.get(&String::from("href"));
+          let hrefValueMaybe = element.attributes.get("href");
           if hrefValueMaybe.is_some() {
             let quoteRawMaybe = hrefValueMaybe.unwrap();
             if quoteRawMaybe.is_some() {
-              let quoteRaw = quoteRawMaybe.as_ref().unwrap().as_str();
+              let quoteRaw = quoteRawMaybe.as_ref().unwrap();
               let quoteResult = quote_raw_to_quote(&quoteRaw);
 
               match quoteResult {
@@ -63,7 +64,6 @@ impl RuleHandler for AnchorRuleHandler {
           }
         },
         Node::Element(_) => {}
-        Node::Comment(_) => {}
       }
     }
 

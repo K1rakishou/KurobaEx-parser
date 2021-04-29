@@ -1,6 +1,6 @@
 use crate::rules::rule_handler::RuleHandler;
-use html_parser::Element;
 use crate::comment_parser::parser::Spannable;
+use crate::html_parser::element::Element;
 
 pub struct LineBreakRuleHandler {}
 
