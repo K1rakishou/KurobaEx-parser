@@ -6,11 +6,15 @@ pub mod parser {
   use crate::rules::rule_handler::RuleHandler;
   use crate::rules::line_break::LineBreakRuleHandler;
   use crate::html_parser::element::Element;
+  use crate::rules::word_break::WordBreakRuleHandler;
 
   #[derive(Debug, PartialEq)]
   pub enum PostLink {
     Quote { post_no: u64 },
-    ThreadLink { site_name: String, board_code: String, thread_no: u64, post_no: u64 }
+    UrlLink { link: String },
+    BoardLink { board_code: String },
+    SearchLink { board_code: String, search_query: String },
+    ThreadLink { board_code: String, thread_no: u64, post_no: u64 }
   }
 
   #[derive(Debug, PartialEq)]
@@ -35,7 +39,7 @@ pub mod parser {
     pub fn new(comment_text: Box<String>, spannables: Box<Vec<Spannable>>) -> PostCommentParsed {
       PostCommentParsed {
         comment_text,
-        spannables: spannables
+        spannables
       }
     }
   }
@@ -59,6 +63,7 @@ pub mod parser {
     pub fn add_default_rules(&mut self) {
       self.rules.insert(String::from("a"), ParsingRule::CustomRule(Box::new(AnchorRuleHandler::new())));
       self.rules.insert(String::from("br"), ParsingRule::CustomRule(Box::new(LineBreakRuleHandler::new())));
+      self.rules.insert(String::from("wbr"), ParsingRule::CustomRule(Box::new(WordBreakRuleHandler::new())));
       self.rules.insert(String::from("span"), ParsingRule::CustomRule(Box::new(SpanHandler::new())));
     }
 
