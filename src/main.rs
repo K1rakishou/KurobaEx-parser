@@ -38,18 +38,16 @@ struct ThreadRaw {
 
 
 fn main() {
-  // Test
-  // <a href=\"#p333650561\" class=\"quotelink\">
-  //   &gt;&gt;333650561
-  // </a>
-  // <br>
-  // <span class=\"quote\">
-  //   &gt;what&#039;s the best alternative
-  // </span>
-  // <br>
-  // Reps
+  // <s>
+  //   <a class="linkify twitter" rel="noreferrer noopener" target="_blank" href="https://twitter.com/denonbu_eng/status/1388107521022468102">
+  //     https://twitter.com/denonbu_eng/sta<wbr>tus/1388107521022468102
+  //   </a>
+  //   <a class="embedder" href="javascript:;" data-key="Twitter" data-uid="denonbu_eng/status/1388107521022468102" data-options="undefined" data-href="https://twitter.com/denonbu_eng/status/1388107521022468102">
+  //     (<span>un</span>embed)
+  //   </a>
+  // </s>
 
-  let html = "Test<a href=\"#p333650561\" class=\"quotelink\">&gt;&gt;33365<wbr>0561</a><br><span class=\"quote\">&gt;what&#039;s the <wbr>best alternative</span><br>Reps";
+  let html = r#"<s><a class="linkify twitter" rel="noreferrer noopener" target="_blank" href="https://twitter.com/denonbu_eng/status/1388107521022468102">https://twitter.com/denonbu_eng/sta<wbr>tus/1388107521022468102</a> <a class="embedder" href="javascript:;" data-key="Twitter" data-uid="denonbu_eng/status/1388107521022468102" data-options="undefined" data-href="https://twitter.com/denonbu_eng/status/1388107521022468102">(<span>un</span>embed)</a></s>"#;
 
   let html_parser = HtmlParser::new();
   let nodes = html_parser.parse(html).expect("parse error");

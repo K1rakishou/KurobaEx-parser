@@ -152,8 +152,7 @@ impl HtmlParser {
   }
 
   fn create_tag(&self, tag_raw: &String) -> Element {
-    let mut tag_parts = tag_raw.split(&" ").collect::<Vec<&str>>();
-
+    let mut tag_parts = self.split_tag_raw_into_parts(&tag_raw);
     if (tag_parts.is_empty()) {
       panic!("tag_parts is empty! tag_raw={}", tag_raw);
     }
@@ -189,6 +188,42 @@ impl HtmlParser {
     };
   }
 
+  fn split_tag_raw_into_parts(&self, tag_raw: &String) -> Vec<String> {
+    let mut is_inside_string = false;
+    let mut offset: usize = 0;
+    let mut tag_parts: Vec<String> = Vec::new();
+    let mut current_tag_part = String::new();
+    let tag_bytes = tag_raw.as_bytes();
+
+    while (offset < tag_bytes.len()) {
+      let ch = tag_bytes[offset as usize] as char;
+
+      if (ch == '\"') {
+        is_inside_string = !is_inside_string;
+      }
+
+      if (ch == ' ' && !is_inside_string) {
+        tag_parts.push(current_tag_part.clone());
+        current_tag_part.clear();
+
+        offset += 1;
+        continue;
+      }
+
+      current_tag_part.push(ch);
+      offset += 1;
+    }
+
+    if (current_tag_part.len() > 0) {
+      tag_parts.push(current_tag_part.clone());
+      current_tag_part.clear();
+    }
+
+    return tag_parts;
+  }
+
+  // Debug stuff
+
   pub fn debug_print_nodes(&self, nodes: &Vec<Node>) {
     self.debug_print_nodes_internal(
       nodes,
@@ -204,15 +239,7 @@ impl HtmlParser {
           iterator(format!("{}{}", self.format_depth(depth), text));
         }
         Node::Element(element) => {
-          iterator(
-            format!(
-              "{}<{}{}>",
-              self.format_depth(depth),
-              &element.name,
-              self.debug_format_attributes(&element.attributes)
-            )
-          );
-
+          iterator(format!("{}<{}{}>", self.format_depth(depth), &element.name, self.debug_format_attributes(&element.attributes)));
           self.debug_print_nodes_internal(&element.children, depth + 1, iterator);
         }
       }
