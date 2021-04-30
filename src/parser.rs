@@ -1,5 +1,4 @@
 pub mod parser {
-  use std::collections::HashMap;
   use crate::comment_parser::parser::{PostCommentParsed, Spannable, CommentParser};
   use crate::PostRaw;
   use crate::html_parser::node::Node;
@@ -50,16 +49,16 @@ pub mod parser {
         return Option::None;
       }
 
-      let mut outTextParts: Vec<String> = Vec::new();
-      let mut outSpannables: Vec<Spannable> = Vec::new();
-      self.parse_nodes(html_parsing_result.unwrap(), &mut outTextParts, &mut outSpannables);
+      let mut out_text_parts: Vec<String> = Vec::new();
+      let mut out_spannables: Vec<Spannable> = Vec::new();
+      self.parse_nodes(html_parsing_result.unwrap(), &mut out_text_parts, &mut out_spannables);
 
-      let postCommentParsed = PostCommentParsed::new(
-        Box::new(outTextParts.join("")),
-        Box::new(outSpannables)
+      let post_comment_parsed = PostCommentParsed::new(
+        Box::new(out_text_parts.join("")),
+        Box::new(out_spannables)
       );
 
-      return Option::Some(postCommentParsed);
+      return Option::Some(post_comment_parsed);
     }
 
     fn parse_nodes(&self, nodes: Vec<Node>, out_text_parts: &mut Vec<String>, out_spannables: &mut Vec<Spannable>) {

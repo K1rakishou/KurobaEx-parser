@@ -1,7 +1,6 @@
 pub mod parser {
   use std::collections::HashMap;
 
-  use crate::comment_parser::parser::ParsingRule::CustomRule;
   use crate::rules::anchor::AnchorRuleHandler;
   use crate::rules::span::SpanHandler;
   use crate::rules::rule_handler::RuleHandler;

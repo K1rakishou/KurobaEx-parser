@@ -13,11 +13,11 @@ impl AnchorRuleHandler {
 }
 
 trait SumBy<T> {
-  fn sumBy(&self, func: &dyn Fn(&T) -> i32) -> i32;
+  fn sum_by(&self, func: &dyn Fn(&T) -> i32) -> i32;
 }
 
 impl<T> SumBy<T> for Vec<T> {
-  fn sumBy(&self, func: &dyn Fn(&T) -> i32) -> i32 {
+  fn sum_by(&self, func: &dyn Fn(&T) -> i32) -> i32 {
     let mut sum: i32 = 0;
 
     for element in self.iter() {
@@ -35,20 +35,20 @@ impl RuleHandler for AnchorRuleHandler {
 
       match link_text_child {
         Node::Text(text) => {
-          let hrefValueMaybe = element.attributes.get("href");
-          if hrefValueMaybe.is_some() {
-            let quoteRawMaybe = hrefValueMaybe.unwrap();
-            if quoteRawMaybe.is_some() {
-              let quoteRaw = quoteRawMaybe.as_ref().unwrap();
-              let quoteResult = quote_raw_to_quote(&quoteRaw);
+          let href_value_maybe = element.attributes.get("href");
+          if href_value_maybe.is_some() {
+            let quote_raw_maybe = href_value_maybe.unwrap();
+            if quote_raw_maybe.is_some() {
+              let quote_raw = quote_raw_maybe.as_ref().unwrap();
+              let quote_result = quote_raw_to_quote(&quote_raw);
 
-              match quoteResult {
+              match quote_result {
                 Err(err) => {
-                  println!("Failed to convert quoteRaw=\'{}\' into postNo", quoteRaw);
+                  println!("Failed to convert quoteRaw=\'{}\' into postNo, err={}", quote_raw, err);
                 }
                 Ok(post_no) => {
                   let unescaped_text = String::from(html_escape::decode_html_entities(text));
-                  let total_text_length = out_text_parts.sumBy(&|string| string.len() as i32);
+                  let total_text_length = out_text_parts.sum_by(&|string| string.len() as i32);
 
                   let spannable = Spannable {
                     start: total_text_length,

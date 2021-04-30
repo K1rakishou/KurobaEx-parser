@@ -11,7 +11,7 @@ impl LineBreakRuleHandler {
 }
 
 impl RuleHandler for LineBreakRuleHandler {
-  fn handle(&self, element: &Element, out_text_parts: &mut Vec<String>, out_spannables: &mut Vec<Spannable>) -> bool {
+  fn handle(&self, _: &Element, out_text_parts: &mut Vec<String>, _: &mut Vec<Spannable>) -> bool {
     out_text_parts.push(String::from('\n'));
     return true;
   }

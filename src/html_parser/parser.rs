@@ -1,14 +1,9 @@
 use crate::html_parser::node::Node;
-use std::str::Chars;
-use std::io::Bytes;
 use std::str;
 use crate::html_parser::element::Element;
 use std::collections::{HashSet};
 use linked_hash_map::LinkedHashMap;
-use serde::de::Unexpected::Str;
 use std::iter::FromIterator;
-use std::ops::{Deref, DerefMut};
-use std::borrow::BorrowMut;
 
 lazy_static! {
   static ref VOID_ELEMENTS: HashSet<&'static str> = {
@@ -32,23 +27,13 @@ lazy_static! {
 
 pub struct HtmlParser {}
 
-struct HtmlParserContext {
-  parsing_tag: bool,
-}
-
-impl HtmlParserContext {
-  pub fn new(parsing_tag: bool) -> HtmlParserContext {
-    return HtmlParserContext { parsing_tag };
-  }
-}
-
 impl HtmlParser {
   pub fn new() -> HtmlParser {
     return HtmlParser {};
   }
 
   pub fn parse(&self, html: &str) -> Result<Vec<Node>, &str> {
-    let (result_nodes, result_offset) = self.parse_internal(
+    let (result_nodes, _) = self.parse_internal(
       html.as_bytes(),
       0,
     );
@@ -61,11 +46,11 @@ impl HtmlParser {
     let mut local_offset = start;
     let mut current_buffer = Vec::new();
 
-    while (local_offset < html.len()) {
+    while local_offset < html.len() {
       let curr_char = html[local_offset as usize] as char;
 
-      if (curr_char == '<') {
-        if (current_buffer.len() > 0) {
+      if curr_char == '<' {
+        if current_buffer.len() > 0 {
           out_nodes.push(Node::Text(String::from_iter(&current_buffer)));
           current_buffer.clear();
         }
@@ -73,7 +58,7 @@ impl HtmlParser {
         local_offset += 1;
 
         let next_char = html[local_offset as usize] as char;
-        if (next_char == '/') {
+        if next_char == '/' {
           let offset = self.skip_tag_end(html, local_offset);
           local_offset = offset;
 
@@ -91,7 +76,7 @@ impl HtmlParser {
       local_offset += 1;
     }
 
-    if (current_buffer.len() > 0) {
+    if current_buffer.len() > 0 {
       out_nodes.push(Node::Text(String::from_iter(&current_buffer)));
       current_buffer.clear();
     }
@@ -103,9 +88,9 @@ impl HtmlParser {
     let mut local_offset = start;
     let mut tag_raw: Vec<char> = Vec::with_capacity(32);
 
-    while (local_offset < html.len()) {
+    while local_offset < html.len() {
       let ch = html[local_offset as usize] as char;
-      if (ch == '>') {
+      if ch == '>' {
         break;
       }
 
@@ -117,7 +102,7 @@ impl HtmlParser {
     local_offset += 1;
 
     let element = self.create_tag(&String::from_iter(tag_raw));
-    if (element.is_void_element) {
+    if element.is_void_element {
       return (element, local_offset);
     }
 
@@ -139,9 +124,9 @@ impl HtmlParser {
   fn skip_tag_end(&self, html: &[u8], start: usize) -> usize {
     let mut local_offset = start;
 
-    while (local_offset < html.len()) {
+    while local_offset < html.len() {
       let ch = html[local_offset as usize] as char;
-      if (ch == '>') {
+      if ch == '>' {
         return local_offset + 1;
       }
 
@@ -152,8 +137,8 @@ impl HtmlParser {
   }
 
   fn create_tag(&self, tag_raw: &String) -> Element {
-    let mut tag_parts = self.split_tag_raw_into_parts(&tag_raw);
-    if (tag_parts.is_empty()) {
+    let tag_parts = self.split_tag_raw_into_parts(&tag_raw);
+    if tag_parts.is_empty() {
       panic!("tag_parts is empty! tag_raw={}", tag_raw);
     }
 
@@ -166,7 +151,7 @@ impl HtmlParser {
         continue;
       }
 
-      let (attribute_split_vec) = tag_part.split("=").collect::<Vec<&str>>();
+      let attribute_split_vec = tag_part.split("=").collect::<Vec<&str>>();
       let attr_name = attribute_split_vec[0];
       let attr_value = attribute_split_vec[1];
 
@@ -195,14 +180,14 @@ impl HtmlParser {
     let mut current_tag_part = String::new();
     let tag_bytes = tag_raw.as_bytes();
 
-    while (offset < tag_bytes.len()) {
+    while offset < tag_bytes.len() {
       let ch = tag_bytes[offset as usize] as char;
 
-      if (ch == '\"') {
+      if ch == '\"' {
         is_inside_string = !is_inside_string;
       }
 
-      if (ch == ' ' && !is_inside_string) {
+      if ch == ' ' && !is_inside_string {
         tag_parts.push(current_tag_part.clone());
         current_tag_part.clear();
 
@@ -214,7 +199,7 @@ impl HtmlParser {
       offset += 1;
     }
 
-    if (current_tag_part.len() > 0) {
+    if current_tag_part.len() > 0 {
       tag_parts.push(current_tag_part.clone());
       current_tag_part.clear();
     }
@@ -224,6 +209,7 @@ impl HtmlParser {
 
   // Debug stuff
 
+  #[allow(dead_code)]
   pub fn debug_print_nodes(&self, nodes: &Vec<Node>) {
     self.debug_print_nodes_internal(
       nodes,
@@ -232,6 +218,7 @@ impl HtmlParser {
     );
   }
 
+  #[allow(dead_code)]
   fn debug_print_nodes_internal(&self, nodes: &Vec<Node>, depth: usize, iterator: &mut dyn FnMut(String)) {
     for node in nodes {
       match node {
@@ -246,6 +233,7 @@ impl HtmlParser {
     }
   }
 
+  #[allow(dead_code)]
   pub fn debug_concat_into_string(&self, nodes: &Vec<Node>) -> String {
     let mut result_string = String::new();
 
@@ -257,6 +245,7 @@ impl HtmlParser {
     return result_string;
   }
 
+  #[allow(dead_code)]
   pub fn debug_concat_into_string_internal(&self, nodes: &Vec<Node>, iterator: &mut dyn FnMut(String)) {
     for node in nodes {
       match node {
@@ -271,24 +260,24 @@ impl HtmlParser {
     }
   }
 
+  #[allow(dead_code)]
   fn format_depth(&self, current_depth: usize) -> String {
     let mut result_string = String::new();
 
-    for i in 0..current_depth {
+    for _ in 0..current_depth {
       result_string.push_str(" ");
     }
 
     return result_string;
   }
 
+  #[allow(dead_code)]
   fn debug_format_attributes(&self, attributes: &LinkedHashMap<String, Option<String>>) -> String {
     let mut result_string = String::new();
 
-    if (attributes.is_empty()) {
+    if attributes.is_empty() {
       return result_string;
     }
-
-    let mut index = 0;
 
     for (attr_key, attr_value_maybe) in attributes {
       let attr_value = match attr_value_maybe {
@@ -297,7 +286,6 @@ impl HtmlParser {
       };
 
       result_string.push_str(format!(", {}={}", attr_key, attr_value).as_str());
-      index += 1;
     }
 
     return result_string;

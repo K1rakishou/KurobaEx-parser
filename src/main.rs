@@ -1,8 +1,4 @@
-use serde::{Serialize, Deserialize};
 use parser::parser::*;
-use std::borrow::Borrow;
-use crate::html_parser::parser::HtmlParser;
-use crate::html_parser::node::Node;
 
 #[macro_use]
 extern crate lazy_static;
@@ -28,7 +24,7 @@ mod html_parser {
   pub mod parser;
 }
 
-struct PostRaw {
+pub struct PostRaw {
   com: Option<String>,
 }
 
@@ -36,44 +32,28 @@ struct ThreadRaw {
   posts: Vec<PostRaw>,
 }
 
-
 fn main() {
-  // <s>
-  //   <a class="linkify twitter" rel="noreferrer noopener" target="_blank" href="https://twitter.com/denonbu_eng/status/1388107521022468102">
-  //     https://twitter.com/denonbu_eng/sta<wbr>tus/1388107521022468102
-  //   </a>
-  //   <a class="embedder" href="javascript:;" data-key="Twitter" data-uid="denonbu_eng/status/1388107521022468102" data-options="undefined" data-href="https://twitter.com/denonbu_eng/status/1388107521022468102">
-  //     (<span>un</span>embed)
-  //   </a>
-  // </s>
+  let post_comment_raw = "<a href=\"#p333650561\" class=\"quotelink\">&gt;&gt;333650561</a><br><span class=\"quote\">&gt;what&#039;s the best alternative</span><br>Reps";
+  let thread_raw = ThreadRaw {
+      posts: vec![
+          PostRaw {
+              com: Option::Some(String::from(post_comment_raw))
+          }
+      ]
+  };
 
-  let html = r#"<s><a class="linkify twitter" rel="noreferrer noopener" target="_blank" href="https://twitter.com/denonbu_eng/status/1388107521022468102">https://twitter.com/denonbu_eng/sta<wbr>tus/1388107521022468102</a> <a class="embedder" href="javascript:;" data-key="Twitter" data-uid="denonbu_eng/status/1388107521022468102" data-options="undefined" data-href="https://twitter.com/denonbu_eng/status/1388107521022468102">(<span>un</span>embed)</a></s>"#;
+  let post_parser = PostParser::new();
 
-  let html_parser = HtmlParser::new();
-  let nodes = html_parser.parse(html).expect("parse error");
-  html_parser.debug_print_nodes(&nodes);
+  for post_raw in thread_raw.posts {
+      if post_raw.com.is_none() {
+          continue;
+      }
 
-  // let postCommentRaw = "<a href=\"#p333650561\" class=\"quotelink\">&gt;&gt;333650561</a><br><span class=\"quote\">&gt;what&#039;s the best alternative</span><br>Reps";
-  // let thread_raw = ThreadRaw {
-  //     posts: vec![
-  //         PostRaw {
-  //             com: Option::Some(String::from(postCommentRaw))
-  //         }
-  //     ]
-  // };
-  //
-  // let post_parser = PostParser::new();
-  //
-  // for post_raw in thread_raw.posts {
-  //     if post_raw.com.is_none() {
-  //         continue;
-  //     }
-  //
-  //     let post_comment_parsed = post_parser.parse_post(&post_raw).post_comment_parsed.unwrap();
-  //     println!("comment: \n{}", post_comment_parsed.comment_text);
-  //
-  //     for spannable in post_comment_parsed.spannables.iter() {
-  //         println!("spannable: \n{:?}", spannable);
-  //     }
-  // }
+      let post_comment_parsed = post_parser.parse_post(&post_raw).post_comment_parsed.unwrap();
+      println!("comment: \n{}", post_comment_parsed.comment_text);
+
+      for spannable in post_comment_parsed.spannables.iter() {
+          println!("spannable: \n{:?}", spannable);
+      }
+  }
 }
