@@ -1,9 +1,10 @@
 use crate::html_parser::node::Node;
-use std::collections::HashMap;
+use linked_hash_map::LinkedHashMap;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Element {
   pub name: String,
-  pub attributes: HashMap<String, Option<String>>,
+  pub attributes: LinkedHashMap<String, Option<String>>,
   pub children: Vec<Node>,
+  pub is_void_element: bool
 }

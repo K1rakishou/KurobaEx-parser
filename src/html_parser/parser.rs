@@ -3,187 +3,276 @@ use std::str::Chars;
 use std::io::Bytes;
 use std::str;
 use crate::html_parser::element::Element;
-use std::collections::HashMap;
+use std::collections::{HashSet};
+use linked_hash_map::LinkedHashMap;
+use serde::de::Unexpected::Str;
+use std::iter::FromIterator;
+use std::ops::{Deref, DerefMut};
+use std::borrow::BorrowMut;
 
-struct TextCursor<'a> {
-  bytes: &'a [u8],
-  offset: usize,
-  length: usize
-}
+lazy_static! {
+  static ref VOID_ELEMENTS: HashSet<&'static str> = {
+    let mut set = HashSet::new();
 
-impl TextCursor<'_> {
+    set.insert("area");
+    set.insert("base");
+    set.insert("br");
+    set.insert("wbr");
+    set.insert("col");
+    set.insert("hr");
+    set.insert("img");
+    set.insert("input");
+    set.insert("link");
+    set.insert("meta");
+    set.insert("param");
 
-  fn new(text: &str) -> TextCursor {
-    return TextCursor {
-      bytes: text.as_bytes(),
-      offset: 0,
-      length: text.len()
-    }
-  }
-
-  fn advance(&mut self) {
-    self.offset += 1;
-  }
-
-  fn advance_by(&mut self, count: usize) {
-    self.offset += count;
-  }
-
-  fn skip_until(&mut self, ch: char) {
-    while self.offset < self.length {
-      let character = self.bytes[self.offset] as char;
-      if character == ch {
-        return;
-      }
-
-      self.advance();
-    }
-  }
-
-  fn slice(&self, from: usize, len: usize) -> &str {
-    return str::from_utf8(&self.bytes[from..(from + len)])
-      .unwrap();
-  }
-
-  fn slice_until(&mut self, marker: &str) -> &str {
-    let start = self.offset;
-
-    while self.offset < self.length {
-      let mut all_match = true;
-
-      for (index, expected_char) in marker.char_indices() {
-        let actual_char = self.bytes[self.offset + index] as char;
-
-        if expected_char != actual_char {
-          all_match = false;
-          break
-        }
-      }
-
-      if (all_match) {
-        break;
-      }
-
-      self.advance();
-    }
-
-    return str::from_utf8(&self.bytes[start..self.offset])
-      .unwrap();
-  }
-
-  fn current_offset(&self) -> usize {
-    return self.offset;
-  }
-
-  fn current_char(&self) -> char {
-    return self.bytes[self.offset] as char;
-  }
-
-  fn peek(&self, offset_relative: usize) -> char {
-    return self.bytes[self.offset + offset_relative] as char;
-  }
-
-  fn reached_end(&self) -> bool {
-    return self.offset >= self.length;
-  }
-
+    return set;
+  };
 }
 
 pub struct HtmlParser {}
 
-impl HtmlParser {
+struct HtmlParserContext {
+  parsing_tag: bool,
+}
 
+impl HtmlParserContext {
+  pub fn new(parsing_tag: bool) -> HtmlParserContext {
+    return HtmlParserContext { parsing_tag };
+  }
+}
+
+impl HtmlParser {
   pub fn new() -> HtmlParser {
     return HtmlParser {};
   }
 
   pub fn parse(&self, html: &str) -> Result<Vec<Node>, &str> {
-    let mut out_nodes: Vec<Node> = Vec::with_capacity(16);
-    let mut cursor = TextCursor::new(html);
+    let (result_nodes, result_offset) = self.parse_internal(
+      html.as_bytes(),
+      0,
+    );
 
-    self.parse_internal(&mut cursor, &mut out_nodes);
-
-    return Result::Ok(out_nodes);
+    return Result::Ok(result_nodes);
   }
 
-  fn parse_internal(&self, cursor: &mut TextCursor, out_nodes: &mut Vec<Node>) {
-    let mut start: usize = 0;
+  fn parse_internal(&self, html: &[u8], start: usize) -> (Vec<Node>, usize) {
+    let mut out_nodes: Vec<Node> = Vec::new();
+    let mut local_offset = start;
+    let mut current_buffer = Vec::new();
 
-    while (!cursor.reached_end()) {
-      let current_char = cursor.current_char();
-      if current_char == '<' && cursor.peek(1) == '/' {
-        self.parse_raw_text(start, cursor, out_nodes);
+    while (local_offset < html.len()) {
+      let curr_char = html[local_offset as usize] as char;
 
-        cursor.skip_until('>');
-        cursor.advance();
-
-        start = cursor.current_offset();
-        continue;
-      }
-
-      if current_char == '<' {
-        self.parse_raw_text(start, cursor, out_nodes);
-
-        self.parse_tag(cursor, out_nodes);
-        start = cursor.current_offset();
-        continue;
-      }
-
-      cursor.advance();
-    }
-
-    self.parse_raw_text(start, cursor, out_nodes);
-  }
-
-  fn parse_tag(&self, cursor: &mut TextCursor, out_nodes: &mut Vec<Node>) {
-    cursor.advance();
-
-    let tag_full = cursor.slice_until(&">");
-    let mut tag_parts = tag_full.split(&" ").collect::<Vec<&str>>();
-
-    if (!tag_parts.is_empty()) {
-      let mut tag_name: Option<String> = Option::None;
-      let mut attributes: HashMap<String, Option<String>> = HashMap::new();
-
-      for tag_part in tag_parts {
-        if !tag_part.contains("=") {
-          tag_name = Option::Some(String::from(tag_part));
-          continue
+      if (curr_char == '<') {
+        if (current_buffer.len() > 0) {
+          out_nodes.push(Node::Text(String::from_iter(&current_buffer)));
+          current_buffer.clear();
         }
 
-        let (attribute_split_vec) = tag_part.split("=").collect::<Vec<&str>>();
-        let attr_name = attribute_split_vec[0];
-        let attr_value = attribute_split_vec[1];
+        local_offset += 1;
 
-        attributes.insert(String::from(attr_name), Option::Some(String::from(attr_value)));
+        let next_char = html[local_offset as usize] as char;
+        if (next_char == '/') {
+          let offset = self.skip_tag_end(html, local_offset);
+          local_offset = offset;
 
-        println!("attr_name={}, attr_value={}", attr_name, attr_value);
-      }
+          return (out_nodes, local_offset);
+        }
 
-      if tag_name.is_some() {
-        let element = Element {
-          name: tag_name.unwrap(),
-          attributes: attributes,
-          children: Vec::new()
-        };
-
+        let (element, offset) = self.parse_tag(html, local_offset);
         out_nodes.push(Node::Element(element));
+        local_offset = offset;
+
+        continue;
       }
+
+      current_buffer.push(curr_char);
+      local_offset += 1;
+    }
+
+    if (current_buffer.len() > 0) {
+      out_nodes.push(Node::Text(String::from_iter(&current_buffer)));
+      current_buffer.clear();
+    }
+
+    return (out_nodes, local_offset);
+  }
+
+  fn parse_tag(&self, html: &[u8], start: usize) -> (Element, usize) {
+    let mut local_offset = start;
+    let mut tag_raw: Vec<char> = Vec::with_capacity(32);
+
+    while (local_offset < html.len()) {
+      let ch = html[local_offset as usize] as char;
+      if (ch == '>') {
+        break;
+      }
+
+      tag_raw.push(ch);
+      local_offset += 1;
     }
 
     // Skip the ">"
-    cursor.advance();
-  }
+    local_offset += 1;
 
-  fn parse_raw_text(&self, start: usize, cursor: &mut TextCursor, out_nodes: &mut Vec<Node>) {
-    if start == cursor.current_offset() {
-      return;
+    let element = self.create_tag(&String::from_iter(tag_raw));
+    if (element.is_void_element) {
+      return (element, local_offset);
     }
 
-    let raw_text = cursor.slice(start, cursor.current_offset() - start);
-    out_nodes.push(Node::Text(String::from(raw_text)));
+    let (child_nodes, new_offset) = self.parse_internal(
+      html,
+      local_offset,
+    );
 
-    println!("raw_text={}", raw_text);
+    let updated_element = Element {
+      name: element.name,
+      attributes: element.attributes,
+      children: child_nodes,
+      is_void_element: false,
+    };
+
+    return (updated_element, new_offset);
   }
 
+  fn skip_tag_end(&self, html: &[u8], start: usize) -> usize {
+    let mut local_offset = start;
+
+    while (local_offset < html.len()) {
+      let ch = html[local_offset as usize] as char;
+      if (ch == '>') {
+        return local_offset + 1;
+      }
+
+      local_offset += 1;
+    }
+
+    panic!("Failed to find tag end");
+  }
+
+  fn create_tag(&self, tag_raw: &String) -> Element {
+    let mut tag_parts = tag_raw.split(&" ").collect::<Vec<&str>>();
+
+    if (tag_parts.is_empty()) {
+      panic!("tag_parts is empty! tag_raw={}", tag_raw);
+    }
+
+    let mut tag_name_maybe: Option<String> = Option::None;
+    let mut attributes: LinkedHashMap<String, Option<String>> = LinkedHashMap::new();
+
+    for tag_part in tag_parts {
+      if !tag_part.contains("=") {
+        tag_name_maybe = Option::Some(String::from(tag_part));
+        continue;
+      }
+
+      let (attribute_split_vec) = tag_part.split("=").collect::<Vec<&str>>();
+      let attr_name = attribute_split_vec[0];
+      let attr_value = attribute_split_vec[1];
+
+      attributes.insert(String::from(attr_name), Option::Some(String::from(attr_value)));
+    }
+
+    if tag_name_maybe.is_none() {
+      panic!("Tag has no name!")
+    }
+
+    let tag_name = tag_name_maybe.unwrap();
+    let is_void_element = VOID_ELEMENTS.contains(&tag_name.as_str());
+
+    return Element {
+      name: tag_name,
+      attributes: attributes,
+      children: Vec::new(),
+      is_void_element: is_void_element
+    };
+  }
+
+  pub fn debug_print_nodes(&self, nodes: &Vec<Node>) {
+    self.debug_print_nodes_internal(
+      nodes,
+      0,
+      &mut |node_string: String| { println!("{}", node_string) }
+    );
+  }
+
+  fn debug_print_nodes_internal(&self, nodes: &Vec<Node>, depth: usize, iterator: &mut dyn FnMut(String)) {
+    for node in nodes {
+      match node {
+        Node::Text(text) => {
+          iterator(format!("{}{}", self.format_depth(depth), text));
+        }
+        Node::Element(element) => {
+          iterator(
+            format!(
+              "{}<{}{}>",
+              self.format_depth(depth),
+              &element.name,
+              self.debug_format_attributes(&element.attributes)
+            )
+          );
+
+          self.debug_print_nodes_internal(&element.children, depth + 1, iterator);
+        }
+      }
+    }
+  }
+
+  pub fn debug_concat_into_string(&self, nodes: &Vec<Node>) -> String {
+    let mut result_string = String::new();
+
+    self.debug_concat_into_string_internal(
+      nodes,
+      &mut |node_string: String| { result_string.push_str(node_string.as_str()) }
+    );
+
+    return result_string;
+  }
+
+  pub fn debug_concat_into_string_internal(&self, nodes: &Vec<Node>, iterator: &mut dyn FnMut(String)) {
+    for node in nodes {
+      match node {
+        Node::Text(text) => {
+          iterator(format!("{}", text));
+        }
+        Node::Element(element) => {
+          iterator(format!("<{}{}>", &element.name, self.debug_format_attributes(&element.attributes)));
+          self.debug_concat_into_string_internal(&element.children, iterator);
+        }
+      }
+    }
+  }
+
+  fn format_depth(&self, current_depth: usize) -> String {
+    let mut result_string = String::new();
+
+    for i in 0..current_depth {
+      result_string.push_str(" ");
+    }
+
+    return result_string;
+  }
+
+  fn debug_format_attributes(&self, attributes: &LinkedHashMap<String, Option<String>>) -> String {
+    let mut result_string = String::new();
+
+    if (attributes.is_empty()) {
+      return result_string;
+    }
+
+    let mut index = 0;
+
+    for (attr_key, attr_value_maybe) in attributes {
+      let attr_value = match attr_value_maybe {
+        None => "null",
+        Some(value) => value
+      };
+
+      result_string.push_str(format!(", {}={}", attr_key, attr_value).as_str());
+      index += 1;
+    }
+
+    return result_string;
+  }
 }
