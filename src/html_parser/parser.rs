@@ -153,7 +153,15 @@ impl HtmlParser {
 
       let attribute_split_vec = tag_part.split("=").collect::<Vec<&str>>();
       let attr_name = attribute_split_vec[0];
-      let attr_value = attribute_split_vec[1];
+      let mut attr_value = attribute_split_vec[1];
+
+      if attr_value.starts_with('\"') {
+        attr_value = &attr_value[1..]
+      }
+
+      if attr_value.ends_with("\"") {
+        attr_value = &attr_value[..(attr_value.len() - 1)]
+      }
 
       attributes.insert(String::from(attr_name), Option::Some(String::from(attr_value)));
     }
@@ -213,21 +221,20 @@ impl HtmlParser {
   pub fn debug_print_nodes(&self, nodes: &Vec<Node>) {
     self.debug_print_nodes_internal(
       nodes,
-      0,
       &mut |node_string: String| { println!("{}", node_string) }
     );
   }
 
   #[allow(dead_code)]
-  fn debug_print_nodes_internal(&self, nodes: &Vec<Node>, depth: usize, iterator: &mut dyn FnMut(String)) {
+  fn debug_print_nodes_internal(&self, nodes: &Vec<Node>, iterator: &mut dyn FnMut(String)) {
     for node in nodes {
       match node {
         Node::Text(text) => {
-          iterator(format!("{}{}", self.format_depth(depth), text));
+          iterator(format!("{}",text));
         }
         Node::Element(element) => {
-          iterator(format!("{}<{}{}>", self.format_depth(depth), &element.name, self.debug_format_attributes(&element.attributes)));
-          self.debug_print_nodes_internal(&element.children, depth + 1, iterator);
+          iterator(format!("<{}{}>",&element.name, self.debug_format_attributes(&element.attributes)));
+          self.debug_print_nodes_internal(&element.children, iterator);
         }
       }
     }
@@ -239,7 +246,9 @@ impl HtmlParser {
 
     self.debug_concat_into_string_internal(
       nodes,
-      &mut |node_string: String| { result_string.push_str(node_string.as_str()) }
+      &mut |node_string: String| {
+        result_string.push_str(format!("{}\n", node_string.as_str()).as_str())
+      }
     );
 
     return result_string;
@@ -258,17 +267,6 @@ impl HtmlParser {
         }
       }
     }
-  }
-
-  #[allow(dead_code)]
-  fn format_depth(&self, current_depth: usize) -> String {
-    let mut result_string = String::new();
-
-    for _ in 0..current_depth {
-      result_string.push_str(" ");
-    }
-
-    return result_string;
   }
 
   #[allow(dead_code)]

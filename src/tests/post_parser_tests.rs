@@ -25,21 +25,21 @@ mod test_main {
 
   #[test]
   fn post_parser_test_1() {
-    let post_comment_raw = "<a href=\"#p333520145\" class=\"quotelink\">&gt;&gt;333520145</a><br><a href=\"#p333520391\" class=\"quotelink\">&gt;&gt;333520391</a><br>
-Feel free to tell me specifically what I&#039;m wrong about. I&#039;ll take one thing he says: that Tomoya is behaving negatively by &quot;dragging her down.&quot;
-But Tomoya knows that. As soon as she becomes the student council president their relationship becomes a political issue with teachers telling her to break up with him,
-(not because she has a boyfriend, but because it&#039;s him specifically), so his perception of the relationship is realistic.
-She is incapable of achieving her goal while dating him, but she holds their relationship equal with her goal and so cannot end it herself,
-which is why he dumps her, so that she&#039;ll be able to achieve it. Stop talking about a game you haven&#039;t even read.
+    let post_comment_raw = "<a href=\"#p333520145\" class=\"quotelink\">&gt;&gt;333520145</a><br><a href=\"#p333520391\" class=\"quotelink\">&gt;&gt;333520391</a><br>\
+Feel free to tell me specifically what I&#039;m wrong about. I&#039;ll take one thing he says: that Tomoya is behaving negatively by &quot;dragging her down.&quot;\
+But Tomoya knows that. As soon as she becomes the student council president their relationship becomes a political issue with teachers telling her to break up with him,\
+(not because she has a boyfriend, but because it&#039;s him specifically), so his perception of the relationship is realistic.\
+She is incapable of achieving her goal while dating him, but she holds their relationship equal with her goal and so cannot end it herself,\
+which is why he dumps her, so that she&#039;ll be able to achieve it. Stop talking about a game you haven&#039;t even read.\
 Also the ending in the anime OVA is not quite the same as the game, so having seen that alone doesn&#039;t quality you to have anything to say about this.";
-    let expected_parsed_comment = r#">>333520145
+    let expected_parsed_comment = ">>333520145
 >>333520391
-Feel free to tell me specifically what I'm wrong about. I'll take one thing he says: that Tomoya is behaving negatively by "dragging her down."
-But Tomoya knows that. As soon as she becomes the student council president their relationship becomes a political issue with teachers telling her to break up with him,
-(not because she has a boyfriend, but because it's him specifically), so his perception of the relationship is realistic.
-She is incapable of achieving her goal while dating him, but she holds their relationship equal with her goal and so cannot end it herself,
-which is why he dumps her, so that she'll be able to achieve it. Stop talking about a game you haven't even read.
-Also the ending in the anime OVA is not quite the same as the game, so having seen that alone doesn't quality you to have anything to say about this."#;
+Feel free to tell me specifically what I'm wrong about. I'll take one thing he says: that Tomoya is behaving negatively by \"dragging her down.\"\
+But Tomoya knows that. As soon as she becomes the student council president their relationship becomes a political issue with teachers telling her to break up with him,\
+(not because she has a boyfriend, but because it's him specifically), so his perception of the relationship is realistic.\
+She is incapable of achieving her goal while dating him, but she holds their relationship equal with her goal and so cannot end it herself,\
+which is why he dumps her, so that she'll be able to achieve it. Stop talking about a game you haven't even read.\
+Also the ending in the anime OVA is not quite the same as the game, so having seen that alone doesn't quality you to have anything to say about this.";
 
     let expected_spannables = vec![
       Spannable { start: 0, len: 11, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 333520145 }) },
