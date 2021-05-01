@@ -21,7 +21,6 @@ pub mod comment_parser {
     Quote { post_no: u64 },
     Dead { post_no: u64 },
     UrlLink { link: String },
-    Spoiler,
     BoardLink { board_code: String },
     SearchLink { board_code: String, search_query: String },
     ThreadLink { board_code: String, thread_no: u64, post_no: u64 }
@@ -48,16 +47,15 @@ pub mod comment_parser {
         PostLink::ThreadLink { board_code, thread_no, post_no } => {
           write!(f, "ThreadLink(board_code: {}, thread_no: {}, post_no: {})", board_code, thread_no, post_no)
         }
-        PostLink::Spoiler => {
-          write!(f, "Spoiler()")
-        }
       }
     }
   }
 
   #[derive(Debug, PartialEq)]
   pub enum SpannableData {
-    Link(PostLink)
+    Link(PostLink),
+    Spoiler,
+    GreenText,
   }
 
   impl fmt::Display for SpannableData {
@@ -65,6 +63,12 @@ pub mod comment_parser {
       return match self {
         SpannableData::Link(post_link) => {
           write!(f, "PostLink(post_link: {})", post_link)
+        }
+        SpannableData::Spoiler => {
+          write!(f, "Spoiler()")
+        }
+        SpannableData::GreenText => {
+          write!(f, "GreenText()")
         }
       }
     }
@@ -75,6 +79,12 @@ pub mod comment_parser {
     pub start: i32,
     pub len: usize,
     pub spannable_data: SpannableData
+  }
+
+  impl Spannable {
+    pub fn is_valid(&self) -> bool {
+      return self.start >= 0 && self.len > 0
+    }
   }
 
   impl fmt::Display for Spannable {
@@ -196,7 +206,13 @@ pub mod comment_parser {
 
         for rule in rules {
           if rule.high_priority() == high_priority && rule.applies(element) {
-            return rule.handler.handle(post_raw, self.post_parser_context, element, out_text_parts, out_spannables)
+            return rule.handler.handle(
+              post_raw,
+              self.post_parser_context,
+              element,
+              out_text_parts,
+              out_spannables
+            )
           }
         }
       }
@@ -204,5 +220,42 @@ pub mod comment_parser {
       return false;
     }
 
+    /// Called after element's child nodes were all processed. Useful when you need to know the len of
+    /// child nodes text
+    pub fn post_process_element(
+      &self,
+      post_raw: &PostRaw,
+      element: &Element,
+      prev_out_text_parts_index: usize,
+      out_text_parts: &mut Vec<String>,
+      prev_out_spannables_index: usize,
+      out_spannables: &mut Vec<Spannable>
+    ) {
+      let element_name = element.name.as_str();
+      let rules_maybe = self.rules.get(element_name);
+
+      let rules = match rules_maybe {
+        None => panic!("No rule found for element with name \'{}\'", element_name),
+        Some(_) => rules_maybe.unwrap()
+      };
+
+      for index in 0..2 {
+        let high_priority = index == 0;
+
+        for rule in rules {
+          if rule.high_priority() == high_priority && rule.applies(element) {
+            return rule.handler.post_handle(
+              post_raw,
+              self.post_parser_context,
+              element,
+              prev_out_text_parts_index,
+              out_text_parts,
+              prev_out_spannables_index,
+              out_spannables
+            )
+          }
+        }
+      }
+    }
   }
 }

@@ -51,6 +51,20 @@ impl RuleHandler for AnchorRuleHandler {
 
     return true;
   }
+
+  fn post_handle(
+    &self,
+    _: &PostRaw,
+    _: &PostParserContext,
+    _: &Element,
+    _: usize,
+    _: &mut Vec<String>,
+    _: usize,
+    _: &mut Vec<Spannable>
+  ) {
+    // no-op
+  }
+
 }
 
 fn handle_href_attr<'a>(
@@ -75,7 +89,7 @@ fn handle_href_attr<'a>(
     }
     Ok(post_link) => {
       let unescaped_text = String::from(html_escape::decode_html_entities(text));
-      let total_text_length = out_text_parts.sum_by(&|string| string.len() as i32);
+      let total_text_length = out_text_parts.iter().sum_by(&|string| string.len() as i32);
 
       match &post_link {
         PostLink::Quote { .. } => {
@@ -110,10 +124,12 @@ fn handle_href_attr<'a>(
             spannable_data: SpannableData::Link(post_link)
           };
 
-          out_spannables.push(spannable);
+          if spannable.is_valid() {
+            out_spannables.push(spannable);
+          }
+
           out_text_parts.push(String::from(unescaped_text));
         }
-        PostLink::Spoiler => panic!("PostLink::Spoiler Must be handled by SpoilerHandler")
       }
     }
   }
@@ -131,7 +147,6 @@ fn handle_single_post_quote(
   let quote_post_id = match post_link {
     PostLink::Quote { post_no } => post_no,
     PostLink::Dead { post_no } => post_no,
-    wrong_post_link@ PostLink::Spoiler |
     wrong_post_link@ PostLink::UrlLink {..} |
     wrong_post_link@ PostLink::BoardLink {..} |
     wrong_post_link@ PostLink::SearchLink {..} |
@@ -143,7 +158,6 @@ fn handle_single_post_quote(
   let is_dead = match post_link {
     PostLink::Quote { .. } => false,
     PostLink::Dead { .. } => true,
-    wrong_post_link@ PostLink::Spoiler |
     wrong_post_link@ PostLink::UrlLink {..} |
     wrong_post_link@ PostLink::BoardLink {..} |
     wrong_post_link@ PostLink::SearchLink {..} |
@@ -176,7 +190,10 @@ fn handle_single_post_quote(
     spannable_data: SpannableData::Link(post_link)
   };
 
-  out_spannables.push(spannable);
+  if spannable.is_valid() {
+    out_spannables.push(spannable);
+  }
+
   out_text_parts.push(quote_text_result);
 }
 

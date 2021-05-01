@@ -17,4 +17,18 @@ impl RuleHandler for LineBreakRuleHandler {
     out_text_parts.push(String::from('\n'));
     return true;
   }
+
+  fn post_handle(
+    &self,
+    _: &PostRaw,
+    _: &PostParserContext,
+    _: &Element,
+    _: usize,
+    _: &mut Vec<String>,
+    _: usize,
+    _: &mut Vec<Spannable>
+  ) {
+    // no-op
+  }
+
 }

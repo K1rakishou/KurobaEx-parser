@@ -107,7 +107,7 @@ pub mod post_parser {
 
       let mut out_text_parts: Vec<String> = Vec::new();
       let mut out_spannables: Vec<Spannable> = Vec::new();
-      self.parse_nodes(post_raw, html_parsing_result.unwrap(), &mut out_text_parts, &mut out_spannables);
+      self.parse_nodes(post_raw, &html_parsing_result.unwrap(), &mut out_text_parts, &mut out_spannables);
 
       let post_comment_parsed = PostCommentParsed::new(
         Box::new(out_text_parts.join("")),
@@ -120,7 +120,7 @@ pub mod post_parser {
     fn parse_nodes(
       &self,
       post_raw: &PostRaw,
-      nodes: Vec<Node>,
+      nodes: &Vec<Node>,
       out_text_parts: &mut Vec<String>,
       out_spannables: &mut Vec<Spannable>
     ) {
@@ -131,13 +131,28 @@ pub mod post_parser {
             out_text_parts.push(unescaped_text);
           },
           Node::Element(element) => {
+            // store the current last indexes of out_text_parts/out_spannables because we may need
+            // them during post process phase to figure out what was added into
+            // out_text_parts/out_spannables
+            let prev_out_text_parts_index = out_text_parts.len().checked_sub(1).unwrap_or(0);
+            let prev_out_spannables_index = out_spannables.len().checked_sub(1).unwrap_or(0);
+
             if self.comment_parser.process_element(post_raw, &element, out_text_parts, out_spannables) {
               continue;
             }
 
             if !element.children.is_empty() {
-              self.parse_nodes(post_raw, element.children, out_text_parts, out_spannables);
+              self.parse_nodes(post_raw, &element.children, out_text_parts, out_spannables);
             }
+
+            self.comment_parser.post_process_element(
+              post_raw,
+              &element,
+              prev_out_text_parts_index,
+              out_text_parts,
+              prev_out_spannables_index,
+              out_spannables
+            )
           },
         }
       }

@@ -20,41 +20,54 @@ impl RuleHandler for SpoilerHandler {
     &self,
     _: &PostRaw,
     _: &PostParserContext,
-    element: &Element,
-    out_text_parts: &mut Vec<String>,
-    out_spannables: &mut Vec<Spannable>
+    _: &Element,
+    _: &mut Vec<String>,
+    _: &mut Vec<Spannable>
   ) -> bool {
+    // We want to process <s> tag after it's children are processed since we need to know their
+    // total text size
+    return false;
+  }
+
+  fn post_handle(
+    &self,
+    post_raw: &PostRaw,
+    post_parser_context: &PostParserContext,
+    element: &Element,
+    prev_out_text_parts_index: usize,
+    out_text_parts: &mut Vec<String>,
+    prev_out_spannables_index: usize,
+    out_spannables: &mut Vec<Spannable>
+  ) {
     if element.children.is_empty() {
-      return true;
+      return;
     }
 
-    if element.children.len() > 1 {
-      return false;
+    if prev_out_text_parts_index > 0
+      && prev_out_text_parts_index == out_text_parts.len()
+      && prev_out_spannables_index == out_spannables.len()
+    {
+      // Nothing was added since handle() call so we apparently have nothing to do? Or maybe we do have?
+      return;
     }
 
-    let spoiler_text_child_node = element.children.first().unwrap();
+    let start = out_text_parts[0..prev_out_text_parts_index]
+      .iter()
+      .sum_by(&|string| string.len() as i32);
 
-    let spoiler_text_child = match spoiler_text_child_node {
-      Node::Text(text) => text,
-      Node::Element(_) => {
-        println!("Unexpected child node: {}", spoiler_text_child_node);
-        return false;
-      }
-    };
-
-    let unescaped_text = String::from(html_escape::decode_html_entities(spoiler_text_child));
-    let total_text_length = out_text_parts.sum_by(&|string| string.len() as i32);
+    let len = out_text_parts[prev_out_text_parts_index..]
+      .iter()
+      .sum_by(&|string| string.len() as i32);
 
     let spannable = Spannable {
-      start: total_text_length,
-      len: unescaped_text.len(),
-      spannable_data: SpannableData::Link(PostLink::Spoiler)
+      start,
+      len: len as usize,
+      spannable_data: SpannableData::Spoiler
     };
 
-    out_spannables.push(spannable);
-    out_text_parts.push(String::from(unescaped_text));
-
-    return true;
+    if spannable.is_valid() {
+      out_spannables.push(spannable);
+    }
   }
 
 }

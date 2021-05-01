@@ -13,7 +13,22 @@ impl WordBreakRuleHandler {
 }
 
 impl RuleHandler for WordBreakRuleHandler {
+
   fn handle(&self, _: &PostRaw, _: &PostParserContext, _: &Element, _: &mut Vec<String>, _: &mut Vec<Spannable>) -> bool {
     return true;
   }
+
+  fn post_handle(
+    &self,
+    _: &PostRaw,
+    _: &PostParserContext,
+    _: &Element,
+    _: usize,
+    _: &mut Vec<String>,
+    _: usize,
+    _: &mut Vec<Spannable>
+  ) {
+    // no-op
+  }
+
 }

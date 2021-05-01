@@ -14,4 +14,15 @@ pub trait RuleHandler {
     out_spannables: &mut Vec<Spannable>
   ) -> bool;
 
+  fn post_handle(
+    &self,
+    post_raw: &PostRaw,
+    post_parser_context: &PostParserContext,
+    element: &Element,
+    prev_out_text_parts_index: usize,
+    out_text_parts: &mut Vec<String>,
+    prev_out_spannables_index: usize,
+    out_spannables: &mut Vec<Spannable>
+  );
+
 }

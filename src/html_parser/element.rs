@@ -4,7 +4,7 @@ use std::fmt;
 
 const CLASS_ATTR: &str = "class";
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Element {
   pub name: String,
   pub attributes: LinkedHashMap<String, String>,
@@ -13,7 +13,7 @@ pub struct Element {
 }
 
 impl Element {
-  pub fn has_class(&self, class_name: &String) -> bool {
+  pub fn has_class(&self, class_name: &str) -> bool {
     let class_attr_maybe = self.attributes.get(CLASS_ATTR);
     if class_attr_maybe.is_none() {
       return false;
@@ -21,6 +21,28 @@ impl Element {
 
     return class_attr_maybe.unwrap().to_lowercase() == class_name.to_lowercase();
   }
+
+  pub fn collect_text(&self) -> String {
+    let mut output = String::with_capacity(16);
+
+    for child in self.children.iter() {
+      self.collect_text_internal(child, &mut output);
+    }
+
+    return output;
+  }
+
+  fn collect_text_internal(&self, node: &Node, output: &mut String) {
+    match node {
+      Node::Text(text) => output.push_str(text),
+      Node::Element(element) => {
+        for child in element.children.iter() {
+          self.collect_text_internal(&child, output);
+        }
+      }
+    }
+  }
+
 }
 
 impl fmt::Display for Element {

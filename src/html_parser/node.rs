@@ -1,7 +1,7 @@
 use crate::html_parser::element::Element;
 use std::fmt;
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Node {
   Text(String),
   Element(Element)

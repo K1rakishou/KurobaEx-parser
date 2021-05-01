@@ -168,11 +168,12 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
   fn post_parser_test_greentext_inside_spoiler() {
     let post_comment_raw = "<a href=\"#p333890765\" class=\"quotelink\">&gt;&gt;333890765</a><br><span class=\"quote\">&gt;letting \"realism\" \
 stop you</span><br><s>Should I use a female version of my name for maximal self-insertion</s>?";
-    let expected_parsed_comment = ">>333890765\n\nShould I use a female version of my name for maximal self-insertion?";
+    let expected_parsed_comment = ">>333890765\n>letting \"realism\" stop you\nShould I use a female version of my name for maximal self-insertion?";
 
     let expected_spannables = vec![
       Spannable { start: 0, len: 11, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 333890765 }) },
-      Spannable { start: 13, len: 67, spannable_data: SpannableData::Link(PostLink::Spoiler) },
+      Spannable { start: 11, len: 28, spannable_data: SpannableData::GreenText },
+      Spannable { start: 39, len: 68, spannable_data: SpannableData::Spoiler },
     ];
 
     let post_parser_context = PostParserContext::new(
@@ -183,5 +184,8 @@ stop you</span><br><s>Should I use a female version of my name for maximal self-
 
     run_test(333890765u64, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
+
+  // Data for dead link handler test
+  // <a href="#p333918351" class="quotelink">&gt;&gt;333918351</a><br>Because JOPs can just go to their dedicated thread on /jp/. &gt;<span class="deadlink">&gt;&gt;34511118</span>
 
 }
