@@ -1,11 +1,11 @@
-use crate::comment_parser::parser::{Spannable, PostLink, SpannableData};
+use crate::comment_parser::comment_parser::{Spannable, PostLink, SpannableData};
 use crate::rules::rule_handler::RuleHandler;
 use crate::html_parser::element::Element;
 use crate::html_parser::node::Node;
 use crate::parsing_error::ParsingError;
-use std::ops::Index;
 use regex::Regex;
-use serde::de::Unexpected::Str;
+use crate::post_parser::post_parser::PostParserContext;
+use crate::PostRaw;
 
 lazy_static! {
   static ref BOARD_LINK_PATTERN: Regex = Regex::new(r"//.*/(\w+)/$").unwrap();
@@ -38,7 +38,14 @@ impl<T> SumBy<T> for Vec<T> {
 }
 
 impl RuleHandler for AnchorRuleHandler {
-  fn handle(&self, element: &Element, out_text_parts: &mut Vec<String>, out_spannables: &mut Vec<Spannable>) -> bool {
+  fn handle(
+    &self,
+    post_raw: &PostRaw,
+    post_parser_context: &PostParserContext,
+    element: &Element,
+    out_text_parts: &mut Vec<String>,
+    out_spannables: &mut Vec<Spannable>
+  ) -> bool {
     if element.children.is_empty() {
       return true;
     }
@@ -50,7 +57,7 @@ impl RuleHandler for AnchorRuleHandler {
     let link_text_child = element.children.first().unwrap();
     match link_text_child {
       Node::Text(text) => {
-        handle_href_attr(element, out_text_parts, out_spannables, text)
+        handle_href_attr(element, post_raw, post_parser_context, out_text_parts, out_spannables, text)
       },
       Node::Element(element) => {
         println!("UNKNOWN TAG: tag_name=<a>, element={:?}", element)
@@ -61,8 +68,10 @@ impl RuleHandler for AnchorRuleHandler {
   }
 }
 
-fn handle_href_attr(
+fn handle_href_attr<'a>(
   element: &Element,
+  post_raw: &PostRaw,
+  post_parser_context: &PostParserContext,
   out_text_parts: &mut Vec<String>,
   out_spannables: &mut Vec<Spannable>,
   text: &String
@@ -78,7 +87,7 @@ fn handle_href_attr(
   }
 
   let link_raw = link_raw_maybe.as_ref().unwrap();
-  let post_link_result = link_raw_to_post_link(&link_raw);
+  let post_link_result = link_raw_to_post_link(post_raw, post_parser_context, &link_raw);
 
   match post_link_result {
     Err(err) => {
@@ -88,25 +97,121 @@ fn handle_href_attr(
       let unescaped_text = String::from(html_escape::decode_html_entities(text));
       let total_text_length = out_text_parts.sum_by(&|string| string.len() as i32);
 
-      let spannable = Spannable {
-        start: total_text_length,
-        len: unescaped_text.len(),
-        spannable_data: SpannableData::Link(post_link)
-      };
+      match &post_link {
+        PostLink::Quote { .. } => {
+          handle_single_post_quote(
+            post_raw,
+            post_parser_context,
+            out_text_parts,
+            out_spannables,
+            post_link,
+            &unescaped_text,
+            total_text_length
+          );
+        },
+        PostLink::Dead { .. } => {
+          handle_single_post_quote(
+            post_raw,
+            post_parser_context,
+            out_text_parts,
+            out_spannables,
+            post_link,
+            &unescaped_text,
+            total_text_length
+          );
+        },
+        PostLink::UrlLink { .. } |
+        PostLink::BoardLink { .. } |
+        PostLink::SearchLink  { .. } |
+        PostLink::ThreadLink { .. } => {
+          let spannable = Spannable {
+            start: total_text_length,
+            len: unescaped_text.len(),
+            spannable_data: SpannableData::Link(post_link)
+          };
 
-      out_spannables.push(spannable);
-      out_text_parts.push(String::from(unescaped_text));
+          out_spannables.push(spannable);
+          out_text_parts.push(String::from(unescaped_text));
+        }
+      }
     }
   }
 }
 
-fn link_raw_to_post_link(link_raw: &str) -> Result<PostLink, ParsingError> {
+fn handle_single_post_quote(
+  post_raw: &PostRaw,
+  post_parser_context: &PostParserContext,
+  out_text_parts: &mut Vec<String>,
+  out_spannables: &mut Vec<Spannable>,
+  post_link: PostLink,
+  unescaped_text: &String,
+  total_text_length: i32
+) {
+  let quote_post_id = match post_link {
+    PostLink::Quote { post_no } => post_no,
+    PostLink::Dead { post_no } => post_no,
+    wrong_post_link@ PostLink::UrlLink {..} |
+    wrong_post_link@ PostLink::BoardLink {..} |
+    wrong_post_link@ PostLink::SearchLink {..} |
+    wrong_post_link@ PostLink::ThreadLink {..} => {
+      panic!("post_link ({}) shouldn't be handled here", wrong_post_link)
+    }
+  };
+
+  let is_dead = match post_link {
+    PostLink::Quote { .. } => false,
+    PostLink::Dead { .. } => true,
+    wrong_post_link@ PostLink::UrlLink {..} |
+    wrong_post_link@ PostLink::BoardLink {..} |
+    wrong_post_link@ PostLink::SearchLink {..} |
+    wrong_post_link@ PostLink::ThreadLink {..} => {
+      panic!("post_link ({}) shouldn't be handled here", wrong_post_link)
+    }
+  };
+
+  let mut quote_text_suffixes = String::new();
+
+  if post_parser_context.is_quoting_original_post(quote_post_id) {
+    quote_text_suffixes.push_str(&" (OP)");
+  }
+
+  if post_parser_context.is_my_reply_to_my_own_post(post_raw.post_id, quote_post_id) {
+    quote_text_suffixes.push_str(&" (Me)");
+  } else if post_parser_context.is_reply_to_my_post(quote_post_id) {
+    quote_text_suffixes.push_str(&" (You)");
+  }
+
+  if is_dead {
+    quote_text_suffixes.push_str(&" (DEAD)");
+  }
+
+  let quote_text_result = format!("{}{}", String::from(unescaped_text), quote_text_suffixes);
+
+  let spannable = Spannable {
+    start: total_text_length,
+    len: quote_text_result.len(),
+    spannable_data: SpannableData::Link(post_link)
+  };
+
+  out_spannables.push(spannable);
+  out_text_parts.push(quote_text_result);
+}
+
+fn link_raw_to_post_link(
+  post_raw: &PostRaw,
+  post_parser_context: &PostParserContext,
+  link_raw: &str
+) -> Result<PostLink, ParsingError> {
   if link_raw.starts_with("#p") {
     // Normal in-thread post quote: "#p333790203"
     let quote_str = &link_raw[2..];
     let post_no = quote_str.parse::<u64>().unwrap();
 
-    return Result::Ok(PostLink::Quote { post_no });
+    return if post_parser_context.is_internal_thread_post(post_no) {
+      Result::Ok(PostLink::Quote { post_no })
+    } else {
+      Result::Ok(PostLink::Dead { post_no })
+    }
   }
 
   if link_raw.starts_with("//") {

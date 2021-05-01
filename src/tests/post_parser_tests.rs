@@ -1,17 +1,26 @@
 #[cfg(test)]
 mod test_main {
   use crate::PostRaw;
-  use crate::parser::parser::PostParser;
-  use crate::comment_parser::parser::Spannable;
-  use crate::comment_parser::parser::SpannableData;
-  use crate::comment_parser::parser::PostLink;
+  use crate::post_parser::post_parser::{PostParser, PostParserContext};
+  use crate::comment_parser::comment_parser::Spannable;
+  use crate::comment_parser::comment_parser::SpannableData;
+  use crate::comment_parser::comment_parser::PostLink;
+  use crate::set;
+  use std::collections::HashSet;
 
-  fn run_test(raw_comment: &str, expected_parsed_comment: &str, expected_spannables: &Vec<Spannable>) {
+  fn run_test(
+    post_id: u64,
+    post_parser_context: &PostParserContext,
+    raw_comment: &str,
+    expected_parsed_comment: &str,
+    expected_spannables: &Vec<Spannable>
+  ) {
     let post_raw = PostRaw {
+      post_id,
       com: Option::Some(String::from(raw_comment))
     };
 
-    let post_parser = PostParser::new();
+    let post_parser = PostParser::new(&post_parser_context);
     let post_comment_parsed = post_parser.parse_post(&post_raw).post_comment_parsed.unwrap();
     let spannables = post_comment_parsed.spannables;
 
@@ -24,29 +33,135 @@ mod test_main {
   }
 
   #[test]
-  fn post_parser_test_1() {
+  fn post_parser_test_dead_quotes() {
     let post_comment_raw = "<a href=\"#p333520145\" class=\"quotelink\">&gt;&gt;333520145</a><br><a href=\"#p333520391\" class=\"quotelink\">&gt;&gt;333520391</a><br>\
-Feel free to tell me specifically what I&#039;m wrong about. I&#039;ll take one thing he says: that Tomoya is behaving negatively by &quot;dragging her down.&quot;\
-But Tomoya knows that. As soon as she becomes the student council president their relationship becomes a political issue with teachers telling her to break up with him,\
-(not because she has a boyfriend, but because it&#039;s him specifically), so his perception of the relationship is realistic.\
-She is incapable of achieving her goal while dating him, but she holds their relationship equal with her goal and so cannot end it herself,\
-which is why he dumps her, so that she&#039;ll be able to achieve it. Stop talking about a game you haven&#039;t even read.\
-Also the ending in the anime OVA is not quite the same as the game, so having seen that alone doesn&#039;t quality you to have anything to say about this.";
+Feel free to tell me specifically what I&#039;m wrong about. I&#039;ll take one thing he says: that Tomoya is behaving negatively by &quot;dragging her down.&quot;";
+    let expected_parsed_comment = ">>333520145 (DEAD)
+>>333520391 (DEAD)
+Feel free to tell me specifically what I'm wrong about. I'll take one thing he says: that Tomoya is behaving negatively by \"dragging her down.\"";
+
+    let expected_spannables = vec![
+      Spannable { start: 0, len: 18, spannable_data: SpannableData::Link(PostLink::Dead { post_no: 333520145 }) },
+      Spannable { start: 19, len: 18, spannable_data: SpannableData::Link(PostLink::Dead { post_no: 333520391 }) }
+    ];
+
+    let post_parser_context = PostParserContext::new(
+      1234567890u64,
+      set!(),
+      set!()
+    );
+
+    run_test(123456780u64, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  #[test]
+  fn post_parser_test_one_not_dead_quote() {
+    let post_comment_raw = "<a href=\"#p333520145\" class=\"quotelink\">&gt;&gt;333520145</a><br><a href=\"#p333520391\" class=\"quotelink\">&gt;&gt;333520391</a><br>\
+Feel free to tell me specifically what I&#039;m wrong about. I&#039;ll take one thing he says: that Tomoya is behaving negatively by &quot;dragging her down.&quot;";
     let expected_parsed_comment = ">>333520145
->>333520391
-Feel free to tell me specifically what I'm wrong about. I'll take one thing he says: that Tomoya is behaving negatively by \"dragging her down.\"\
-But Tomoya knows that. As soon as she becomes the student council president their relationship becomes a political issue with teachers telling her to break up with him,\
-(not because she has a boyfriend, but because it's him specifically), so his perception of the relationship is realistic.\
-She is incapable of achieving her goal while dating him, but she holds their relationship equal with her goal and so cannot end it herself,\
-which is why he dumps her, so that she'll be able to achieve it. Stop talking about a game you haven't even read.\
-Also the ending in the anime OVA is not quite the same as the game, so having seen that alone doesn't quality you to have anything to say about this.";
+>>333520391 (DEAD)
+Feel free to tell me specifically what I'm wrong about. I'll take one thing he says: that Tomoya is behaving negatively by \"dragging her down.\"";
 
     let expected_spannables = vec![
       Spannable { start: 0, len: 11, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 333520145 }) },
-      Spannable { start: 12, len: 11, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 333520391 }) }
+      Spannable { start: 12, len: 18, spannable_data: SpannableData::Link(PostLink::Dead { post_no: 333520391 }) }
     ];
 
-    run_test(post_comment_raw, expected_parsed_comment, &expected_spannables);
+    let post_parser_context = PostParserContext::new(
+      1234567890u64,
+      set!(),
+      set!(333520145u64)
+    );
+
+    run_test(123456780u64, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  #[test]
+  fn post_parser_test_one_not_dead_quote_original_post() {
+    let post_comment_raw = "<a href=\"#p333520145\" class=\"quotelink\">&gt;&gt;333520145</a><br><a href=\"#p333520391\" class=\"quotelink\">&gt;&gt;333520391</a><br>\
+Feel free to tell me specifically what I&#039;m wrong about. I&#039;ll take one thing he says: that Tomoya is behaving negatively by &quot;dragging her down.&quot;";
+    let expected_parsed_comment = ">>333520145 (OP)
+>>333520391 (DEAD)
+Feel free to tell me specifically what I'm wrong about. I'll take one thing he says: that Tomoya is behaving negatively by \"dragging her down.\"";
+
+    let expected_spannables = vec![
+      Spannable { start: 0, len: 16, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 333520145 }) },
+      Spannable { start: 17, len: 18, spannable_data: SpannableData::Link(PostLink::Dead { post_no: 333520391 }) }
+    ];
+
+    let post_parser_context = PostParserContext::new(
+      333520145u64,
+      set!(),
+      set!(333520145u64)
+    );
+
+    run_test(123456780u64, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  #[test]
+  fn post_parser_test_one_not_dead_quote_original_post_you() {
+    let post_comment_raw = "<a href=\"#p333520145\" class=\"quotelink\">&gt;&gt;333520145</a><br><a href=\"#p333520391\" class=\"quotelink\">&gt;&gt;333520391</a><br>\
+Feel free to tell me specifically what I&#039;m wrong about. I&#039;ll take one thing he says: that Tomoya is behaving negatively by &quot;dragging her down.&quot;";
+    let expected_parsed_comment = ">>333520145 (OP) (You)
+>>333520391 (DEAD)
+Feel free to tell me specifically what I'm wrong about. I'll take one thing he says: that Tomoya is behaving negatively by \"dragging her down.\"";
+
+    let expected_spannables = vec![
+      Spannable { start: 0, len: 22, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 333520145 }) },
+      Spannable { start: 23, len: 18, spannable_data: SpannableData::Link(PostLink::Dead { post_no: 333520391 }) }
+    ];
+
+    let post_parser_context = PostParserContext::new(
+      333520145u64,
+      set!(333520145u64),
+      set!(333520145u64)
+    );
+
+    run_test(123456780u64, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  #[test]
+  fn post_parser_test_one_not_dead_quote_original_post_me() {
+    let post_comment_raw = "<a href=\"#p333520145\" class=\"quotelink\">&gt;&gt;333520145</a><br><a href=\"#p333520391\" class=\"quotelink\">&gt;&gt;333520391</a><br>\
+Feel free to tell me specifically what I&#039;m wrong about. I&#039;ll take one thing he says: that Tomoya is behaving negatively by &quot;dragging her down.&quot;";
+    let expected_parsed_comment = ">>333520145 (OP) (Me)
+>>333520391 (DEAD)
+Feel free to tell me specifically what I'm wrong about. I'll take one thing he says: that Tomoya is behaving negatively by \"dragging her down.\"";
+
+    let expected_spannables = vec![
+      Spannable { start: 0, len: 21, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 333520145 }) },
+      Spannable { start: 22, len: 18, spannable_data: SpannableData::Link(PostLink::Dead { post_no: 333520391 }) }
+    ];
+
+    let post_parser_context = PostParserContext::new(
+      333520145u64,
+      set!(333520145u64),
+      set!(333520145u64)
+    );
+
+    run_test(333520145u64, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  #[test]
+  fn post_parser_test_one_not_dead_quote_original_post_you_second_you() {
+    let post_comment_raw = "<a href=\"#p333520145\" class=\"quotelink\">&gt;&gt;333520145</a><br><a href=\"#p333520391\" class=\"quotelink\">&gt;&gt;333520391</a><br>\
+Feel free to tell me specifically what I&#039;m wrong about. I&#039;ll take one thing he says: that Tomoya is behaving negatively by &quot;dragging her down.&quot;";
+    let expected_parsed_comment = ">>333520145 (OP) (You)
+>>333520391 (You)
+Feel free to tell me specifically what I'm wrong about. I'll take one thing he says: that Tomoya is behaving negatively by \"dragging her down.\"";
+
+    let expected_spannables = vec![
+      Spannable { start: 0, len: 22, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 333520145 }) },
+      Spannable { start: 23, len: 17, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 333520391 }) }
+    ];
+
+    let post_parser_context = PostParserContext::new(
+      333520145u64,
+      set!(333520145u64, 333520391u64),
+      set!(333520145u64, 333520391u64)
+    );
+
+    run_test(123u64, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]

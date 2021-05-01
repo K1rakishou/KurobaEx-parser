@@ -1,6 +1,8 @@
 use crate::rules::rule_handler::RuleHandler;
-use crate::comment_parser::parser::Spannable;
+use crate::comment_parser::comment_parser::Spannable;
 use crate::html_parser::element::Element;
+use crate::post_parser::post_parser::PostParserContext;
+use crate::PostRaw;
 
 pub struct WordBreakRuleHandler {}
 
@@ -11,7 +13,7 @@ impl WordBreakRuleHandler {
 }
 
 impl RuleHandler for WordBreakRuleHandler {
-  fn handle(&self, _: &Element, _: &mut Vec<String>, _: &mut Vec<Spannable>) -> bool {
+  fn handle(&self, _: &PostRaw, _: &PostParserContext, _: &Element, _: &mut Vec<String>, _: &mut Vec<Spannable>) -> bool {
     return true;
   }
 }
