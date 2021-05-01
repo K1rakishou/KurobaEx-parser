@@ -143,7 +143,7 @@ impl HtmlParser {
     }
 
     let mut tag_name_maybe: Option<String> = Option::None;
-    let mut attributes: LinkedHashMap<String, Option<String>> = LinkedHashMap::new();
+    let mut attributes: LinkedHashMap<String, String> = LinkedHashMap::new();
 
     for tag_part in tag_parts {
       if !tag_part.contains("=") {
@@ -163,7 +163,7 @@ impl HtmlParser {
         attr_value = &attr_value[..(attr_value.len() - 1)]
       }
 
-      attributes.insert(String::from(attr_name), Option::Some(String::from(attr_value)));
+      attributes.insert(String::from(attr_name), String::from(attr_value));
     }
 
     if tag_name_maybe.is_none() {
@@ -175,9 +175,9 @@ impl HtmlParser {
 
     return Element {
       name: tag_name,
-      attributes: attributes,
+      attributes,
       children: Vec::new(),
-      is_void_element: is_void_element
+      is_void_element
     };
   }
 
@@ -230,10 +230,10 @@ impl HtmlParser {
     for node in nodes {
       match node {
         Node::Text(text) => {
-          iterator(format!("{}",text));
+          iterator(format!("{}", text));
         }
         Node::Element(element) => {
-          iterator(format!("<{}{}>",&element.name, self.debug_format_attributes(&element.attributes)));
+          iterator(format!("<{}{}>", &element.name, self.debug_format_attributes(&element.attributes)));
           self.debug_print_nodes_internal(&element.children, iterator);
         }
       }
@@ -270,19 +270,14 @@ impl HtmlParser {
   }
 
   #[allow(dead_code)]
-  fn debug_format_attributes(&self, attributes: &LinkedHashMap<String, Option<String>>) -> String {
+  fn debug_format_attributes(&self, attributes: &LinkedHashMap<String, String>) -> String {
     let mut result_string = String::new();
 
     if attributes.is_empty() {
       return result_string;
     }
 
-    for (attr_key, attr_value_maybe) in attributes {
-      let attr_value = match attr_value_maybe {
-        None => "null",
-        Some(value) => value
-      };
-
+    for (attr_key, attr_value) in attributes {
       result_string.push_str(format!(", {}={}", attr_key, attr_value).as_str());
     }
 

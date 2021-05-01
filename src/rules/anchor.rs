@@ -81,12 +81,7 @@ fn handle_href_attr<'a>(
     return;
   }
 
-  let link_raw_maybe = href_value_maybe.unwrap();
-  if link_raw_maybe.is_none() {
-    return;
-  }
-
-  let link_raw = link_raw_maybe.as_ref().unwrap();
+  let link_raw = href_value_maybe.unwrap();
   let post_link_result = link_raw_to_post_link(post_raw, post_parser_context, &link_raw);
 
   match post_link_result {
@@ -294,6 +289,9 @@ fn link_raw_to_post_link(
     }
   }
 
-  let full_msg = format!("Failed to parse link_raw: {}", link_raw);
-  return Result::Err(ParsingError::new(&full_msg));
+  let thread_link = PostLink::UrlLink {
+    link: String::from(link_raw)
+  };
+
+  return Result::Ok(thread_link);
 }

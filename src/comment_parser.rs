@@ -1,5 +1,5 @@
 pub mod comment_parser {
-  use std::collections::HashMap;
+  use std::collections::{HashMap, HashSet};
 
   use crate::rules::anchor::AnchorRuleHandler;
   use crate::rules::span::SpanHandler;
@@ -11,6 +11,9 @@ pub mod comment_parser {
   use std::fmt;
   use std::fmt::Formatter;
   use crate::PostRaw;
+  use crate::set;
+  use std::rc::Rc;
+  use std::ops::Deref;
 
   #[derive(Debug, PartialEq)]
   pub enum PostLink {
@@ -101,31 +104,72 @@ pub mod comment_parser {
     }
   }
 
-  enum ParsingRule {
-    CustomRule(Box<dyn RuleHandler>)
+  pub struct ParsingRule {
+    tag: String,
+    req_classes: HashSet<String>,
+    handler: Box<dyn RuleHandler>
+  }
+
+  impl ParsingRule {
+    pub fn new(tag: &str, req_classes: HashSet<String>, handler: Box<dyn RuleHandler>) -> ParsingRule {
+      ParsingRule {
+        tag: String::from(tag),
+        req_classes,
+        handler
+      }
+    }
+
+    pub fn high_priority(&self) -> bool {
+      return self.req_classes.len() > 0;
+    }
+
+    pub fn applies(&self, element: &Element) -> bool {
+      if self.req_classes.is_empty() {
+        return true
+      }
+
+      for req_class in &self.req_classes {
+        if element.has_class(&req_class) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
   }
 
   pub struct CommentParser<'a> {
     post_parser_context: &'a PostParserContext,
-    rules: HashMap<String, ParsingRule>
+    rules: HashMap<String, Vec<Box<ParsingRule>>>
   }
 
   impl CommentParser<'_> {
 
-    pub fn new<'a>(post_parser_context: &'a PostParserContext) -> CommentParser<'a> {
+    pub fn new(post_parser_context: &PostParserContext) -> CommentParser {
       return CommentParser {
         post_parser_context,
         rules: HashMap::new()
       }
     }
 
-    pub fn add_default_rules(&mut self) {
-      self.rules.insert(String::from("a"), ParsingRule::CustomRule(Box::new(AnchorRuleHandler::new())));
-      self.rules.insert(String::from("br"), ParsingRule::CustomRule(Box::new(LineBreakRuleHandler::new())));
-      self.rules.insert(String::from("wbr"), ParsingRule::CustomRule(Box::new(WordBreakRuleHandler::new())));
-      self.rules.insert(String::from("span"), ParsingRule::CustomRule(Box::new(SpanHandler::new())));
+    fn add_rule(&mut self, rule: Box<ParsingRule>) {
+      if !self.rules.contains_key(&rule.tag) {
+        self.rules.insert(String::from(&rule.tag), Vec::new());
+      }
+
+      self.rules.get_mut(&rule.tag).unwrap().push(rule);
     }
 
+    pub fn add_default_rules(&mut self) {
+      self.add_rule(Box::new(ParsingRule::new("a", set!(), Box::new(AnchorRuleHandler::new()))));
+      self.add_rule(Box::new(ParsingRule::new("br", set!(), Box::new(LineBreakRuleHandler::new()))));
+      self.add_rule(Box::new(ParsingRule::new("wbr", set!(), Box::new(WordBreakRuleHandler::new()))));
+      self.add_rule(Box::new(ParsingRule::new("span", set!(), Box::new(SpanHandler::new()))));
+    }
+
+    /// returns true if we managed to parse this node fully and don't need to go deeper for child nodes.
+    /// returns false
     pub fn process_element(
       &self,
       post_raw: &PostRaw,
@@ -134,18 +178,24 @@ pub mod comment_parser {
       out_spannables: &mut Vec<Spannable>
     ) -> bool {
       let element_name = element.name.as_str();
-      let rule_maybe = self.rules.get(element_name);
+      let rules_maybe = self.rules.get(element_name);
 
-      let rule = match rule_maybe {
+      let rules = match rules_maybe {
         None => panic!("No rule found for element with name \'{}\'", element_name),
-        Some(_) => rule_maybe.unwrap()
+        Some(_) => rules_maybe.unwrap()
       };
 
-      return match rule {
-        ParsingRule::CustomRule(rule_handler) => {
-          rule_handler.handle(post_raw, self.post_parser_context, element, out_text_parts, out_spannables)
+      for index in 0..2 {
+        let high_priority = index == 0;
+
+        for rule in rules {
+          if rule.high_priority() == high_priority && rule.applies(element) {
+            return rule.handler.handle(post_raw, self.post_parser_context, element, out_text_parts, out_spannables)
+          }
         }
       }
+
+      return false;
     }
 
   }
