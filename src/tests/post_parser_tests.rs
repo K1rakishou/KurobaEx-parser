@@ -165,21 +165,23 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
   }
 
   #[test]
-  fn post_parser_test_2() {
-//     let post_comment_raw = "Visual Novel General #4179<br><br>This general is for the discussion of English-translated Japanese visual novels.<br>\
-// All posting of untranslated visual novels belongs on <a href=\"//boards.4channel.org/jp/\" class=\"quotelink\">&gt;&gt;&gt;/jp/</a><br>E-celeb shitposting is not allowed.<br>\
-// Kindly use spoiler tags appropriately when discussing plot spoilers to facilitate smooth discussion.<br><br><span class=\"quote\">&gt;Having trouble with your VN? \
-// Try the following before you ask for tech support:</span><br>1. Be in Japanese locale<br>2. Read the Readme<br>3. Read the wiki below<br>4. \
-// Copy error messages with CTRL+C and paste them with CTRL+V into DeepL<br>5. Google it<br><br><span class=\"quote\">&gt;FAQs, Recommendations, \
-// and Other Useful Things:</span><br>http://visual-novels-general.wikia.<wbr>com/wiki/<br>https://sites.google.com/view/moech<wbr>art/<br>\
-// https://files.catbox.moe/143by7.png<wbr><br>https://i.imgur.com/3CDmFQm.jpg<br><br><span class=\"quote\">&gt;Need a novel with a specific element?</span><br>\
-// http://vndb.org/g<br><br><span class=\"quote\">&gt;Download Links:</span><br>https://pastebin.com/YTGdpqZL<br><br>\
-// Previous thread: <a href=\"/vg/thread/333581281#p333581281\" class=\"quotelink\">&gt;&gt;333581281</a>";
-//
-//
-//     run_test(post_comment_raw, expected_parsed_comment, &expected_spannables);
-  }
+  fn post_parser_test_greentext_inside_spoiler() {
+    let post_comment_raw = "<a href=\"#p333890765\" class=\"quotelink\">&gt;&gt;333890765</a><br><span class=\"quote\">&gt;letting \"realism\" \
+stop you</span><br><s>Should I use a female version of my name for maximal self-insertion</s>?";
+    let expected_parsed_comment = ">>333890765\n\nShould I use a female version of my name for maximal self-insertion?";
 
-  // <a href=\"/vg/thread/333790974#p333790974\" class=\"quotelink\">&gt;&gt;333790974</a><br><a href=\"/vg/thread/333790974#p333790974\" class=\"quotelink\">&gt;&gt;333790974</a><br><a href=\"/vg/thread/333790974#p333790974\" class=\"quotelink\">&gt;&gt;333790974</a>
+    let expected_spannables = vec![
+      Spannable { start: 0, len: 11, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 333890765 }) },
+      Spannable { start: 13, len: 67, spannable_data: SpannableData::Link(PostLink::Spoiler) },
+    ];
+
+    let post_parser_context = PostParserContext::new(
+      333859392u64,
+      set!(),
+      set!(333890765u64)
+    );
+
+    run_test(333890765u64, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
 
 }

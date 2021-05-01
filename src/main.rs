@@ -14,6 +14,7 @@ mod rules {
   pub mod word_break;
   pub mod rule_handler;
   pub mod span;
+  pub mod spoiler;
 }
 
 mod html_parser {
@@ -24,6 +25,7 @@ mod html_parser {
 
 mod util {
   pub mod macroses;
+  pub mod helpers;
 }
 
 mod tests {

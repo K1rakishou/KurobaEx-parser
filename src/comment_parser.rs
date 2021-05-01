@@ -14,12 +14,14 @@ pub mod comment_parser {
   use crate::set;
   use std::rc::Rc;
   use std::ops::Deref;
+  use crate::rules::spoiler::SpoilerHandler;
 
   #[derive(Debug, PartialEq)]
   pub enum PostLink {
     Quote { post_no: u64 },
     Dead { post_no: u64 },
     UrlLink { link: String },
+    Spoiler,
     BoardLink { board_code: String },
     SearchLink { board_code: String, search_query: String },
     ThreadLink { board_code: String, thread_no: u64, post_no: u64 }
@@ -45,6 +47,9 @@ pub mod comment_parser {
         },
         PostLink::ThreadLink { board_code, thread_no, post_no } => {
           write!(f, "ThreadLink(board_code: {}, thread_no: {}, post_no: {})", board_code, thread_no, post_no)
+        }
+        PostLink::Spoiler => {
+          write!(f, "Spoiler()")
         }
       }
     }
@@ -166,6 +171,7 @@ pub mod comment_parser {
       self.add_rule(Box::new(ParsingRule::new("br", set!(), Box::new(LineBreakRuleHandler::new()))));
       self.add_rule(Box::new(ParsingRule::new("wbr", set!(), Box::new(WordBreakRuleHandler::new()))));
       self.add_rule(Box::new(ParsingRule::new("span", set!(), Box::new(SpanHandler::new()))));
+      self.add_rule(Box::new(ParsingRule::new("s", set!(), Box::new(SpoilerHandler::new()))));
     }
 
     /// returns true if we managed to parse this node fully and don't need to go deeper for child nodes.

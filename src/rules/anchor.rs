@@ -6,6 +6,7 @@ use crate::parsing_error::ParsingError;
 use regex::Regex;
 use crate::post_parser::post_parser::PostParserContext;
 use crate::PostRaw;
+use crate::util::helpers::SumBy;
 
 lazy_static! {
   static ref BOARD_LINK_PATTERN: Regex = Regex::new(r"//.*/(\w+)/$").unwrap();
@@ -18,22 +19,6 @@ pub struct AnchorRuleHandler {}
 impl AnchorRuleHandler {
   pub fn new() -> AnchorRuleHandler {
     return AnchorRuleHandler {};
-  }
-}
-
-trait SumBy<T> {
-  fn sum_by(&self, func: &dyn Fn(&T) -> i32) -> i32;
-}
-
-impl<T> SumBy<T> for Vec<T> {
-  fn sum_by(&self, func: &dyn Fn(&T) -> i32) -> i32 {
-    let mut sum: i32 = 0;
-
-    for element in self.iter() {
-      sum += func(&element);
-    }
-
-    return sum;
   }
 }
 
@@ -60,7 +45,7 @@ impl RuleHandler for AnchorRuleHandler {
         handle_href_attr(element, post_raw, post_parser_context, out_text_parts, out_spannables, text)
       },
       Node::Element(element) => {
-        println!("UNKNOWN TAG: tag_name=<a>, element={:?}", element)
+        println!("UNKNOWN TAG: tag_name=<a>, element={}", element)
       }
     }
 
@@ -128,6 +113,7 @@ fn handle_href_attr<'a>(
           out_spannables.push(spannable);
           out_text_parts.push(String::from(unescaped_text));
         }
+        PostLink::Spoiler => panic!("PostLink::Spoiler Must be handled by SpoilerHandler")
       }
     }
   }
@@ -145,6 +131,7 @@ fn handle_single_post_quote(
   let quote_post_id = match post_link {
     PostLink::Quote { post_no } => post_no,
     PostLink::Dead { post_no } => post_no,
+    wrong_post_link@ PostLink::Spoiler |
     wrong_post_link@ PostLink::UrlLink {..} |
     wrong_post_link@ PostLink::BoardLink {..} |
     wrong_post_link@ PostLink::SearchLink {..} |
@@ -156,6 +143,7 @@ fn handle_single_post_quote(
   let is_dead = match post_link {
     PostLink::Quote { .. } => false,
     PostLink::Dead { .. } => true,
+    wrong_post_link@ PostLink::Spoiler |
     wrong_post_link@ PostLink::UrlLink {..} |
     wrong_post_link@ PostLink::BoardLink {..} |
     wrong_post_link@ PostLink::SearchLink {..} |
