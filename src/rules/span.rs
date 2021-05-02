@@ -1,4 +1,4 @@
-use crate::rules::rule_handler::RuleHandler;
+use crate::rules::rule_handler::{RuleHandler, RuleHandlerPostHandleMeta};
 use crate::comment_parser::comment_parser::{Spannable, SpannableData, PostLink};
 use crate::html_parser::element::Element;
 use crate::post_parser::post_parser::PostParserContext;
@@ -42,7 +42,7 @@ impl RuleHandler for SpanHandler {
       return;
     }
 
-    if prev_out_text_parts_index <= 0 || prev_out_text_parts_index == out_text_parts.len() {
+    if prev_out_text_parts_index < 0 || prev_out_text_parts_index == out_text_parts.len() {
       // Nothing was added since handle() call. This probably means that the current tag has an empty
       // body.
       return;
@@ -50,17 +50,12 @@ impl RuleHandler for SpanHandler {
 
     if element.has_class("quote") {
       // greentext
-      let start = out_text_parts[0..prev_out_text_parts_index]
-        .iter()
-        .sum_by(&|string| string.len() as i32);
-
-      let len = out_text_parts[prev_out_text_parts_index..]
-        .iter()
-        .sum_by(&|string| string.len() as i32);
+      let start = (self as &dyn RuleHandler).get_out_text_parts_diff_len(prev_out_text_parts_index, &out_text_parts);
+      let len = (self as &dyn RuleHandler).get_out_text_parts_new_len(prev_out_text_parts_index, &out_text_parts) as usize;
 
       let spannable = Spannable {
         start,
-        len: len as usize,
+        len,
         spannable_data: SpannableData::GreenText
       };
 
@@ -71,7 +66,6 @@ impl RuleHandler for SpanHandler {
 
     if element.has_class("deadlink") {
       // dead post quote
-      println!("deadlink")
     }
   }
 

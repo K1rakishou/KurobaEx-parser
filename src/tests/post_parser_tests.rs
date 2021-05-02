@@ -185,6 +185,26 @@ stop you</span><br><s>Should I use a female version of my name for maximal self-
     run_test(333890765u64, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
+  #[test]
+  fn post_parser_test_quote_inside_spoiler_inside_greentext() {
+    let post_comment_raw = "<span class=\"quote\"><s><a href=\"#p333863078\" class=\"quotelink\">&gt;&gt;333863078</a><wbr></s></span>";
+    let expected_parsed_comment = ">>333863078";
+
+    let expected_spannables = vec![
+      Spannable { start: 0, len: 11, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 333863078 }) },
+      Spannable { start: 0, len: 11, spannable_data: SpannableData::Spoiler },
+      Spannable { start: 0, len: 11, spannable_data: SpannableData::GreenText },
+    ];
+
+    let post_parser_context = PostParserContext::new(
+      1234u64,
+      set!(),
+      set!(333863078u64)
+    );
+
+    run_test(1235u64, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
   // Data for dead link handler test
   // <a href="#p333918351" class="quotelink">&gt;&gt;333918351</a><br>Because JOPs can just go to their dedicated thread on /jp/. &gt;<span class="deadlink">&gt;&gt;34511118</span>
 
