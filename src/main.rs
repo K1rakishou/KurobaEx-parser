@@ -43,8 +43,20 @@ struct ThreadRaw {
 }
 
 fn main() {
-  let post_comment_raw = "<a href=\"#p333918351\" class=\"quotelink\">&gt;&gt;333918351</a><br>Because JOPs can just go to their \
-    dedicated thread on /jp/. &gt;<span class=\"deadlink\">&gt;&gt;34511118</span>";
+  let post_comment_raw = "https://www.youtube.com/watch?v=57tu8AtKf9E
+https://boards.4channel.org/vg/thread/333979978 test https://boards.4channel.org/v/
+
+http://visual-novels-general.wikia.com/wiki/
+https://sites.google.com/view/moechart/
+https://files.catbox.moe/143by7.png (embed)
+https://i.imgur.com/3CDmFQm.jpg (embed)
+http://vndb.org/g
+https://pastebin.com/YTGdpqZL (embed)
+https://pastebin.com/YTGdpqZL
+http://2.com
+https://pastebin.com/1 https://w4534gerhnrh.com/2 https://pastebin.com/3
+
+https://www.youtube.com/watch?v=57tu8AtKf9E";
 
   let thread_raw = ThreadRaw {
     posts: vec![

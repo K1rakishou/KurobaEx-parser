@@ -90,7 +90,7 @@ fn handle_href_attr<'a>(
     }
     Ok(post_link) => {
       let unescaped_text = String::from(html_escape::decode_html_entities(text));
-      let total_text_length = out_text_parts.iter().sum_by(&|string| string.len() as i32);
+      let total_text_length = out_text_parts.iter().sum_by(&|string| string.len() as i32) as usize;
 
       match &post_link {
         PostLink::Quote { .. } | PostLink::Dead { .. } => {
@@ -132,7 +132,7 @@ pub fn handle_single_post_quote(
   out_spannables: &mut Vec<Spannable>,
   post_link: PostLink,
   unescaped_text: &String,
-  span_start: i32
+  span_start: usize
 ) {
   let quote_post_id = match post_link {
     PostLink::Quote { post_no } => post_no,

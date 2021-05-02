@@ -121,7 +121,7 @@ impl SpanHandler {
         PostLink::Dead { post_no: quote_value }
       };
 
-      let total_text_length = out_text_parts.iter().sum_by(&|string| string.len() as i32);
+      let total_text_length = out_text_parts.iter().sum_by(&|string| string.len() as i32) as usize;
 
       handle_single_post_quote(
         post_raw,
@@ -149,7 +149,7 @@ impl SpanHandler {
     let start = (self as &dyn RuleHandler).get_out_text_parts_diff_len(
       prev_out_text_parts_index,
       &out_text_parts
-    );
+    ) as usize;
 
     let len = (self as &dyn RuleHandler).get_out_text_parts_new_len(
       prev_out_text_parts_index,

@@ -1,10 +1,15 @@
 pub mod post_parser {
-  use crate::comment_parser::comment_parser::{PostCommentParsed, Spannable, CommentParser};
+  use crate::comment_parser::comment_parser::{PostCommentParsed, Spannable, CommentParser, SpannableData, PostLink};
   use crate::PostRaw;
   use crate::html_parser::node::Node;
   use crate::html_parser::parser::HtmlParser;
   use std::collections::HashSet;
   use std::fmt;
+  use regex::Regex;
+
+  lazy_static! {
+    static ref CRUDE_LINK_PATTERN: Regex = Regex::new(r"(https?://(?:[^\s]+).)").unwrap();
+  }
 
   #[derive(Debug)]
   pub struct PostParserContext {
@@ -128,6 +133,8 @@ pub mod post_parser {
         match node {
           Node::Text(text) => {
             let unescaped_text = String::from(html_escape::decode_html_entities(text.as_str()));
+            self.detect_links(&unescaped_text, out_spannables);
+
             out_text_parts.push(unescaped_text);
           },
           Node::Element(element) => {
@@ -159,6 +166,115 @@ pub mod post_parser {
       }
     }
 
-  }
+    pub fn detect_links(&self, text: &String, out_spannables: &mut Vec<Spannable>) {
+      let mut capture_locations = CRUDE_LINK_PATTERN.capture_locations();
+      let mut offset: usize = 0;
 
+      let bytes = text.as_bytes();
+
+      loop {
+        CRUDE_LINK_PATTERN.captures_read_at(&mut capture_locations, text, offset);
+
+        let capture_maybe = capture_locations.get(0);
+        if capture_maybe.is_none() {
+          break;
+        }
+
+        let (capture_start, capture_end) = capture_maybe.unwrap();
+        if capture_start >= capture_end || capture_end <= 0 {
+          break;
+        }
+
+        let left_pointer = self.look_for_first_white_space_to_the_left(&bytes, capture_start);
+        let right_pointer = self.look_for_first_white_space_to_the_right(&bytes, capture_end - 1);
+
+        let actual_link = String::from(&text[left_pointer..right_pointer]);
+
+        let link_spannable = Spannable {
+          start: left_pointer,
+          len: (right_pointer - left_pointer),
+          spannable_data: SpannableData::Link(PostLink::UrlLink { link: actual_link })
+        };
+
+        out_spannables.push(link_spannable);
+
+        offset = capture_end;
+      }
+    }
+
+    fn look_for_first_white_space_to_the_right(&self, bytes: &[u8], capture_end: usize) -> usize {
+      let mut right_pointer = capture_end;
+      let bytes_length = bytes.len();
+
+      if right_pointer == bytes_length {
+        let char_maybe = bytes.get(right_pointer);
+        if char_maybe.is_some() {
+          let char = char_maybe.unwrap();
+          if char.is_ascii_whitespace() {
+            right_pointer = right_pointer.checked_sub(1).unwrap();
+          }
+        }
+
+        return right_pointer;
+      }
+
+      while right_pointer < bytes_length {
+        let char_maybe = bytes.get(right_pointer);
+        if char_maybe.is_none() {
+          break
+        }
+
+        let char = char_maybe.unwrap();
+        if char.is_ascii_whitespace() {
+          break
+        }
+
+        if right_pointer == bytes_length {
+          break;
+        }
+
+        right_pointer = right_pointer.checked_add(1).unwrap_or(bytes_length);
+      }
+
+      return right_pointer
+    }
+
+    fn look_for_first_white_space_to_the_left(&self, bytes: &[u8], capture_start: usize) -> usize {
+      let mut left_pointer = capture_start;
+
+      if left_pointer == 0 {
+        let char_maybe = bytes.get(left_pointer);
+        if char_maybe.is_some() {
+          let char = char_maybe.unwrap();
+          if char.is_ascii_whitespace() {
+            left_pointer = left_pointer.checked_add(1).unwrap();
+          }
+        }
+
+        return left_pointer;
+      }
+
+      while left_pointer >= 0 {
+        let char_maybe = bytes.get(left_pointer);
+        if char_maybe.is_none() {
+          break
+        }
+
+        let char = char_maybe.unwrap();
+        if char.is_ascii_whitespace() {
+          left_pointer = left_pointer.checked_add(1).unwrap();
+          break
+        }
+
+        if left_pointer == 0 {
+          break;
+        }
+
+        left_pointer = left_pointer.checked_sub(1).unwrap_or(0);
+      }
+
+      return left_pointer;
+    }
+
+  }
 }

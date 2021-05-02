@@ -70,7 +70,7 @@ impl RuleHandler for SpoilerHandler {
       .sum_by(&|string| string.len() as i32);
 
     let spannable = Spannable {
-      start,
+      start: start as usize,
       len: len as usize,
       spannable_data: SpannableData::Spoiler
     };

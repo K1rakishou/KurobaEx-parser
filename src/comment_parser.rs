@@ -78,7 +78,7 @@ pub mod comment_parser {
 
   #[derive(Debug, PartialEq)]
   pub struct Spannable {
-    pub start: i32,
+    pub start: usize,
     pub len: usize,
     pub spannable_data: SpannableData
   }

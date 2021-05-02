@@ -245,4 +245,66 @@ stop you</span><br><s>Should I use a female version of my name for maximal self-
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
+  #[test]
+  fn post_parser_test_link_detection() {
+    let post_comment_raw = "https://www.youtube.com/watch?v=57tu8AtKf9E
+https://boards.4channel.org/vg/thread/333979978 test https://boards.4channel.org/v/
+
+http://visual-novels-general.wikia.com/wiki/
+https://sites.google.com/view/moechart/
+https://files.catbox.moe/143by7.png (embed)
+https://i.imgur.com/3CDmFQm.jpg (embed)
+http://vndb.org/g
+https://pastebin.com/YTGdpqZL (embed)
+https://pastebin.com/YTGdpqZL
+http://2.com
+https://pastebin.com/1 https://w4534gerhnrh.com/2 https://pastebin.com/3
+
+https://www.youtube.com/watch?v=57tu8AtKf9E";
+
+    let expected_parsed_comment = "https://www.youtube.com/watch?v=57tu8AtKf9E
+https://boards.4channel.org/vg/thread/333979978 test https://boards.4channel.org/v/
+
+http://visual-novels-general.wikia.com/wiki/
+https://sites.google.com/view/moechart/
+https://files.catbox.moe/143by7.png (embed)
+https://i.imgur.com/3CDmFQm.jpg (embed)
+http://vndb.org/g
+https://pastebin.com/YTGdpqZL (embed)
+https://pastebin.com/YTGdpqZL
+http://2.com
+https://pastebin.com/1 https://w4534gerhnrh.com/2 https://pastebin.com/3
+
+https://www.youtube.com/watch?v=57tu8AtKf9E";
+
+    let expected_spannables = vec![
+      Spannable { start: 0, len: 43, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://www.youtube.com/watch?v=57tu8AtKf9E") }) },
+      Spannable { start: 44, len: 47, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://boards.4channel.org/vg/thread/333979978") }) },
+      Spannable { start: 97, len: 30, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://boards.4channel.org/v/") }) },
+      Spannable { start: 129, len: 44, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("http://visual-novels-general.wikia.com/wiki/") }) },
+      Spannable { start: 174, len: 39, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://sites.google.com/view/moechart/") }) },
+      Spannable { start: 214, len: 35, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://files.catbox.moe/143by7.png") }) },
+      Spannable { start: 258, len: 31, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://i.imgur.com/3CDmFQm.jpg") }) },
+      Spannable { start: 298, len: 17, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("http://vndb.org/g") }) },
+      Spannable { start: 316, len: 29, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://pastebin.com/YTGdpqZL") }) },
+      Spannable { start: 354, len: 29, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://pastebin.com/YTGdpqZL") }) },
+      Spannable { start: 384, len: 12, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("http://2.com") }) },
+      Spannable { start: 397, len: 22, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://pastebin.com/1") }) },
+      Spannable { start: 420, len: 26, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://w4534gerhnrh.com/2") }) },
+      Spannable { start: 447, len: 22, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://pastebin.com/3") }) },
+      Spannable { start: 471, len: 43, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://www.youtube.com/watch?v=57tu8AtKf9E") }) },
+    ];
+
+    let post_parser_context = PostParserContext::new(
+      1234,
+      set!(),
+      set!()
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  // Board link data
+  // <a href="#p81423695" class="quotelink">&gt;&gt;81423695 (OP)</a><br>We have one here with sound.<br><a href="//boards.4channel.org/wsg/thread/3849481#p3849481" class="quotelink" style="">&gt;&gt;&gt;/wsg/3849481</a>
+
 }
