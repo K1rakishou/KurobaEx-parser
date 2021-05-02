@@ -15,7 +15,7 @@ impl SpanHandler {
 
 impl RuleHandler for SpanHandler {
 
-  fn handle(
+  fn pre_handle(
     &self,
     _: &PostRaw,
     _: &PostParserContext,
@@ -42,11 +42,9 @@ impl RuleHandler for SpanHandler {
       return;
     }
 
-    if prev_out_text_parts_index > 0
-      && prev_out_text_parts_index == out_text_parts.len()
-      && prev_out_spannables_index == out_spannables.len()
-    {
-      // Nothing was added since handle() call so we apparently have nothing to do? Or maybe we do have?
+    if prev_out_text_parts_index <= 0 || prev_out_text_parts_index == out_text_parts.len() {
+      // Nothing was added since handle() call. This probably means that the current tag has an empty
+      // body.
       return;
     }
 

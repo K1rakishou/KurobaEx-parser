@@ -1,5 +1,5 @@
 [package]
-name = "kurobaex_post_parser"
+name = "new_post_parser"
 version = "0.1.0"
 authors = ["k1rakishou <kez1911@protonmail.com>"]
 edition = "2018"

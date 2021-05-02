@@ -16,7 +16,7 @@ impl SpoilerHandler {
 
 impl RuleHandler for SpoilerHandler {
 
-  fn handle(
+  fn pre_handle(
     &self,
     _: &PostRaw,
     _: &PostParserContext,

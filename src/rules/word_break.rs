@@ -14,7 +14,7 @@ impl WordBreakRuleHandler {
 
 impl RuleHandler for WordBreakRuleHandler {
 
-  fn handle(&self, _: &PostRaw, _: &PostParserContext, _: &Element, _: &mut Vec<String>, _: &mut Vec<Spannable>) -> bool {
+  fn pre_handle(&self, _: &PostRaw, _: &PostParserContext, _: &Element, _: &mut Vec<String>, _: &mut Vec<Spannable>) -> bool {
     return true;
   }
 

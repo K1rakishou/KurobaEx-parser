@@ -5,7 +5,7 @@ use crate::PostRaw;
 
 pub trait RuleHandler {
 
-  fn handle(
+  fn pre_handle(
     &self,
     post_raw: &PostRaw,
     post_parser_context: &PostParserContext,

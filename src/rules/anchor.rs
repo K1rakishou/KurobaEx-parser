@@ -23,7 +23,7 @@ impl AnchorRuleHandler {
 }
 
 impl RuleHandler for AnchorRuleHandler {
-  fn handle(
+  fn pre_handle(
     &self,
     post_raw: &PostRaw,
     post_parser_context: &PostParserContext,

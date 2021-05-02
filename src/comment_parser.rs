@@ -186,7 +186,7 @@ pub mod comment_parser {
 
     /// returns true if we managed to parse this node fully and don't need to go deeper for child nodes.
     /// returns false
-    pub fn process_element(
+    pub fn pre_process_element(
       &self,
       post_raw: &PostRaw,
       element: &Element,
@@ -206,7 +206,7 @@ pub mod comment_parser {
 
         for rule in rules {
           if rule.high_priority() == high_priority && rule.applies(element) {
-            return rule.handler.handle(
+            return rule.handler.pre_handle(
               post_raw,
               self.post_parser_context,
               element,

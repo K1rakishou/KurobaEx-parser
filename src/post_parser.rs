@@ -107,7 +107,7 @@ pub mod post_parser {
 
       let mut out_text_parts: Vec<String> = Vec::new();
       let mut out_spannables: Vec<Spannable> = Vec::new();
-      self.parse_nodes(post_raw, &html_parsing_result.unwrap(), &mut out_text_parts, &mut out_spannables);
+      self.process_element(post_raw, &html_parsing_result.unwrap(), &mut out_text_parts, &mut out_spannables);
 
       let post_comment_parsed = PostCommentParsed::new(
         Box::new(out_text_parts.join("")),
@@ -117,7 +117,7 @@ pub mod post_parser {
       return Option::Some(post_comment_parsed);
     }
 
-    fn parse_nodes(
+    fn process_element(
       &self,
       post_raw: &PostRaw,
       nodes: &Vec<Node>,
@@ -137,22 +137,23 @@ pub mod post_parser {
             let prev_out_text_parts_index = out_text_parts.len().checked_sub(1).unwrap_or(0);
             let prev_out_spannables_index = out_spannables.len().checked_sub(1).unwrap_or(0);
 
-            if self.comment_parser.process_element(post_raw, &element, out_text_parts, out_spannables) {
+            if self.comment_parser.pre_process_element(post_raw, &element, out_text_parts, out_spannables) {
+              // Element was fully processed, no need to check the child elements
               continue;
             }
 
             if !element.children.is_empty() {
-              self.parse_nodes(post_raw, &element.children, out_text_parts, out_spannables);
-            }
+              self.process_element(post_raw, &element.children, out_text_parts, out_spannables);
 
-            self.comment_parser.post_process_element(
-              post_raw,
-              &element,
-              prev_out_text_parts_index,
-              out_text_parts,
-              prev_out_spannables_index,
-              out_spannables
-            )
+              self.comment_parser.post_process_element(
+                post_raw,
+                &element,
+                prev_out_text_parts_index,
+                out_text_parts,
+                prev_out_spannables_index,
+                out_spannables
+              )
+            }
           },
         }
       }
