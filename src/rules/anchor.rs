@@ -8,6 +8,9 @@ use crate::post_parser::post_parser::PostParserContext;
 use crate::PostRaw;
 use crate::util::helpers::SumBy;
 
+const TAG: &str = "AnchorRuleHandler";
+const HREF: &str = "href";
+
 lazy_static! {
   static ref BOARD_LINK_PATTERN: Regex = Regex::new(r"//.*/(\w+)/$").unwrap();
   static ref BOARD_LINK_WITH_SEARCH_PATTERN: Regex = Regex::new(r"//.*/(\w+)/catalog#s=(\w+)$").unwrap();
@@ -31,11 +34,8 @@ impl RuleHandler for AnchorRuleHandler {
     out_text_parts: &mut Vec<String>,
     out_spannables: &mut Vec<Spannable>
   ) -> bool {
-    if element.children.is_empty() {
-      return true;
-    }
-
-    if element.children.len() > 1 {
+    if element.children.len() != 1 {
+      eprintln!("{} element.children.len() != 1, len={}", TAG, element.children.len() > 1);
       return false;
     }
 
@@ -45,7 +45,7 @@ impl RuleHandler for AnchorRuleHandler {
         handle_href_attr(element, post_raw, post_parser_context, out_text_parts, out_spannables, text)
       },
       Node::Element(element) => {
-        println!("UNKNOWN TAG: tag_name=<a>, element={}", element)
+        eprintln!("{} UNKNOWN TAG: tag_name=<a>, element={}", TAG, element)
       }
     }
 
@@ -75,8 +75,9 @@ fn handle_href_attr<'a>(
   out_spannables: &mut Vec<Spannable>,
   text: &String
 ) {
-  let href_value_maybe = element.attributes.get("href");
+  let href_value_maybe = element.attributes.get(HREF);
   if href_value_maybe.is_none() {
+    eprintln!("{} <a> tag has no \"{}\" attribute", TAG, HREF);
     return;
   }
 
@@ -85,25 +86,14 @@ fn handle_href_attr<'a>(
 
   match post_link_result {
     Err(err) => {
-      println!("Failed to convert quoteRaw=\'{}\' into postNo, err={}", link_raw, err);
+      eprintln!("{} Failed to convert quoteRaw=\"{}\" into postNo, err={}", TAG, link_raw, err);
     }
     Ok(post_link) => {
       let unescaped_text = String::from(html_escape::decode_html_entities(text));
       let total_text_length = out_text_parts.iter().sum_by(&|string| string.len() as i32);
 
       match &post_link {
-        PostLink::Quote { .. } => {
-          handle_single_post_quote(
-            post_raw,
-            post_parser_context,
-            out_text_parts,
-            out_spannables,
-            post_link,
-            &unescaped_text,
-            total_text_length
-          );
-        },
-        PostLink::Dead { .. } => {
+        PostLink::Quote { .. } | PostLink::Dead { .. } => {
           handle_single_post_quote(
             post_raw,
             post_parser_context,
@@ -135,14 +125,14 @@ fn handle_href_attr<'a>(
   }
 }
 
-fn handle_single_post_quote(
+pub fn handle_single_post_quote(
   post_raw: &PostRaw,
   post_parser_context: &PostParserContext,
   out_text_parts: &mut Vec<String>,
   out_spannables: &mut Vec<Spannable>,
   post_link: PostLink,
   unescaped_text: &String,
-  total_text_length: i32
+  span_start: i32
 ) {
   let quote_post_id = match post_link {
     PostLink::Quote { post_no } => post_no,
@@ -151,7 +141,7 @@ fn handle_single_post_quote(
     wrong_post_link@ PostLink::BoardLink {..} |
     wrong_post_link@ PostLink::SearchLink {..} |
     wrong_post_link@ PostLink::ThreadLink {..} => {
-      panic!("post_link ({}) shouldn't be handled here", wrong_post_link)
+      panic!("{} post_link ({}) shouldn't be handled here", TAG, wrong_post_link)
     }
   };
 
@@ -162,7 +152,7 @@ fn handle_single_post_quote(
     wrong_post_link@ PostLink::BoardLink {..} |
     wrong_post_link@ PostLink::SearchLink {..} |
     wrong_post_link@ PostLink::ThreadLink {..} => {
-      panic!("post_link ({}) shouldn't be handled here", wrong_post_link)
+      panic!("{} post_link ({}) shouldn't be handled here", TAG, wrong_post_link)
     }
   };
 
@@ -185,7 +175,7 @@ fn handle_single_post_quote(
   let quote_text_result = format!("{}{}", String::from(unescaped_text), quote_text_suffixes);
 
   let spannable = Spannable {
-    start: total_text_length,
+    start: span_start,
     len: quote_text_result.len(),
     spannable_data: SpannableData::Link(post_link)
   };

@@ -6,6 +6,8 @@ use crate::comment_parser::comment_parser::{Spannable, SpannableData, PostLink};
 use crate::html_parser::node::Node;
 use crate::util::helpers::SumBy;
 
+const TAG: &str = "SpoilerHandler";
+
 pub struct SpoilerHandler {}
 
 impl SpoilerHandler {
@@ -39,15 +41,23 @@ impl RuleHandler for SpoilerHandler {
     prev_out_spannables_index: usize,
     out_spannables: &mut Vec<Spannable>
   ) {
-    if element.children.is_empty() {
+    if prev_out_text_parts_index < 0  {
+      // Nothing was added since handle() call. This probably means that the current tag has an empty
+      // body.
+      eprintln!("{} prev_out_text_parts_index < 0 ({})", TAG, prev_out_text_parts_index);
       return;
     }
 
-    if prev_out_text_parts_index > 0
-      && prev_out_text_parts_index == out_text_parts.len()
-      && prev_out_spannables_index == out_spannables.len()
-    {
-      // Nothing was added since handle() call so we apparently have nothing to do? Or maybe we do have?
+    if prev_out_text_parts_index == out_text_parts.len() {
+      // Nothing was added since handle() call. This probably means that the current tag has an empty
+      // body.
+      eprintln!(
+        "{} prev_out_text_parts_index ({}) == out_text_parts.len() ({})",
+        TAG,
+        prev_out_text_parts_index,
+        out_text_parts.len()
+      );
+
       return;
     }
 

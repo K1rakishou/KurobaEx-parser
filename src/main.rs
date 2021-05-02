@@ -43,8 +43,8 @@ struct ThreadRaw {
 }
 
 fn main() {
-  // quote inside spoiler inside quote span
-  let post_comment_raw = "<span class=\"quote\"><s><a href=\"#p333863078\" class=\"quotelink\">&gt;&gt;333863078</a><wbr></s></span>";
+  let post_comment_raw = "<a href=\"#p333918351\" class=\"quotelink\">&gt;&gt;333918351</a><br>Because JOPs can just go to their \
+    dedicated thread on /jp/. &gt;<span class=\"deadlink\">&gt;&gt;34511118</span>";
 
   let thread_raw = ThreadRaw {
     posts: vec![
@@ -57,8 +57,8 @@ fn main() {
 
   let post_parser_context = PostParserContext::new(
     333696415u64,
-    HashSet::new(),
-    HashSet::new()
+    set!(),
+    set!(333918351)
   );
 
   let post_parser = PostParser::new(&post_parser_context);
@@ -72,7 +72,7 @@ fn main() {
     println!("comment: \n{}", post_comment_parsed.comment_text);
 
     for spannable in post_comment_parsed.spannables.iter() {
-      println!("spannable: \n{}", spannable);
+      println!("{}", spannable);
     }
   }
 }

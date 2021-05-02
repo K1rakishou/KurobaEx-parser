@@ -75,7 +75,7 @@ pub mod post_parser {
   }
 
   impl PostParser<'_> {
-    pub fn new<'a>(post_parser_context: &'a PostParserContext) -> PostParser<'a> {
+    pub fn new(post_parser_context: &PostParserContext) -> PostParser {
       let mut comment_parser = CommentParser::new(post_parser_context);
       comment_parser.add_default_rules();
 

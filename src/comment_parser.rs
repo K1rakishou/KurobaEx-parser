@@ -16,6 +16,8 @@ pub mod comment_parser {
   use std::ops::Deref;
   use crate::rules::spoiler::SpoilerHandler;
 
+  const TAG: &str = "CommentParser";
+
   #[derive(Debug, PartialEq)]
   pub enum PostLink {
     Quote { post_no: u64 },
@@ -197,7 +199,12 @@ pub mod comment_parser {
       let rules_maybe = self.rules.get(element_name);
 
       let rules = match rules_maybe {
-        None => panic!("No rule found for element with name \'{}\'", element_name),
+        None => {
+          let error_formatted = format!("<No rule found for element with name \'{}\'>", element_name);
+          out_text_parts.push(String::from(error_formatted));
+
+          return true;
+        },
         Some(_) => rules_maybe.unwrap()
       };
 

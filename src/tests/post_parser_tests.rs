@@ -46,12 +46,12 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
     ];
 
     let post_parser_context = PostParserContext::new(
-      1234567890u64,
+      1234567890,
       set!(),
       set!()
     );
 
-    run_test(123456780u64, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -68,12 +68,12 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
     ];
 
     let post_parser_context = PostParserContext::new(
-      1234567890u64,
+      1234567890,
       set!(),
-      set!(333520145u64)
+      set!(333520145)
     );
 
-    run_test(123456780u64, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -90,12 +90,12 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
     ];
 
     let post_parser_context = PostParserContext::new(
-      333520145u64,
+      333520145,
       set!(),
-      set!(333520145u64)
+      set!(333520145)
     );
 
-    run_test(123456780u64, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -112,12 +112,12 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
     ];
 
     let post_parser_context = PostParserContext::new(
-      333520145u64,
-      set!(333520145u64),
-      set!(333520145u64)
+      333520145,
+      set!(333520145),
+      set!(333520145)
     );
 
-    run_test(123456780u64, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -134,12 +134,12 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
     ];
 
     let post_parser_context = PostParserContext::new(
-      333520145u64,
-      set!(333520145u64),
-      set!(333520145u64)
+      333520145,
+      set!(333520145),
+      set!(333520145)
     );
 
-    run_test(333520145u64, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(333520145, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -156,12 +156,12 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
     ];
 
     let post_parser_context = PostParserContext::new(
-      333520145u64,
-      set!(333520145u64, 333520391u64),
-      set!(333520145u64, 333520391u64)
+      333520145,
+      set!(333520145, 333520391),
+      set!(333520145, 333520391)
     );
 
-    run_test(123u64, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(123, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -177,12 +177,12 @@ stop you</span><br><s>Should I use a female version of my name for maximal self-
     ];
 
     let post_parser_context = PostParserContext::new(
-      333859392u64,
+      333859392,
       set!(),
-      set!(333890765u64)
+      set!(333890765)
     );
 
-    run_test(333890765u64, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(333890765, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -197,15 +197,52 @@ stop you</span><br><s>Should I use a female version of my name for maximal self-
     ];
 
     let post_parser_context = PostParserContext::new(
-      1234u64,
+      1234,
       set!(),
-      set!(333863078u64)
+      set!(333863078)
     );
 
-    run_test(1235u64, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
-  // Data for dead link handler test
-  // <a href="#p333918351" class="quotelink">&gt;&gt;333918351</a><br>Because JOPs can just go to their dedicated thread on /jp/. &gt;<span class="deadlink">&gt;&gt;34511118</span>
+  #[test]
+  fn post_parser_test_dead_link_when_we_do_not_have_locally_cached_post() {
+    let post_comment_raw = "<a href=\"#p333918351\" class=\"quotelink\">&gt;&gt;333918351</a><br>Because JOPs can just go to their \
+    dedicated thread on /jp/. &gt;<span class=\"deadlink\">&gt;&gt;34511118</span>";
+    let expected_parsed_comment = ">>333918351\nBecause JOPs can just go to their dedicated thread on /jp/. >>>34511118 (DEAD)";
+
+    let expected_spannables = vec![
+      Spannable { start: 0, len: 11, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 333918351 }) },
+      Spannable { start: 73, len: 17, spannable_data: SpannableData::Link(PostLink::Dead { post_no: 34511118 }) },
+    ];
+
+    let post_parser_context = PostParserContext::new(
+      1234,
+      set!(),
+      set!(333918351)
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  #[test]
+  fn post_parser_test_dead_link_when_we_have_locally_cached_post() {
+    let post_comment_raw = "<a href=\"#p333918351\" class=\"quotelink\">&gt;&gt;333918351</a><br>Because JOPs can just go to their \
+    dedicated thread on /jp/. &gt;<span class=\"deadlink\">&gt;&gt;34511118</span>";
+    let expected_parsed_comment = ">>333918351\nBecause JOPs can just go to their dedicated thread on /jp/. >>>34511118";
+
+    let expected_spannables = vec![
+      Spannable { start: 0, len: 11, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 333918351 }) },
+      Spannable { start: 73, len: 10, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 34511118 }) },
+    ];
+
+    let post_parser_context = PostParserContext::new(
+      1234,
+      set!(),
+      set!(333918351, 34511118)
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
 
 }
