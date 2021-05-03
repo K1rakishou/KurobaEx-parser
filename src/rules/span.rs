@@ -158,7 +158,9 @@ impl SpanHandler {
 
     let spannable = Spannable {
       start,
-      len,
+      len, // TODO: maybe I could include the children tags' text length here too so in case when
+           // there is any kind of link inside green text we could mark that link as green too.
+           // Right now it may not work.
       spannable_data: SpannableData::GreenText
     };
 

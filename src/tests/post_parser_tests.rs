@@ -304,7 +304,103 @@ https://www.youtube.com/watch?v=57tu8AtKf9E";
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
-  // Board link data
-  // <a href="#p81423695" class="quotelink">&gt;&gt;81423695 (OP)</a><br>We have one here with sound.<br><a href="//boards.4channel.org/wsg/thread/3849481#p3849481" class="quotelink" style="">&gt;&gt;&gt;/wsg/3849481</a>
+  #[test]
+  fn post_parser_test_cross_thread_link() {
+    let post_comment_raw = "<a href=\"#p81423695\" class=\"quotelink\">&gt;&gt;81423695</a><br>We have one here with sound.<br>\
+    <a href=\"//boards.4channel.org/wsg/thread/3849481#p3849481\" class=\"quotelink\" style=\"\">&gt;&gt;&gt;/wsg/3849481</a>";
 
+    let expected_parsed_comment = ">>81423695\nWe have one here with sound.\n>>>/wsg/3849481";
+
+    let expected_spannables = vec![
+      Spannable {
+        start: 0,
+        len: 10,
+        spannable_data: SpannableData::Link(PostLink::Quote { post_no: 81423695 })
+      },
+      Spannable {
+        start: 40,
+        len: 15,
+        spannable_data: SpannableData::Link(PostLink::ThreadLink {
+          board_code: String::from("wsg"),
+          thread_no: 3849481,
+          post_no: 3849481
+        })
+      },
+    ];
+
+    let post_parser_context = PostParserContext::new(
+      1234,
+      set!(),
+      set!(81423695)
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  #[test]
+  fn post_parser_test_board_link_search_link_cross_thread_link() {
+    let post_comment_raw = "<span class=\"quote\">&gt;Read the sticky: <a href=\"/g/thread/76759434#p76759434\" \
+    class=\"quotelink\">&gt;&gt;76759434</a></span><br><br><span class=\"quote\">&gt;GNU/Linux questions </span>\
+    <a href=\"//boards.4channel.org/g/catalog#s=fglt\" class=\"quotelink\">&gt;&gt;&gt;/g/fglt</a><br><br>\
+    <span class=\"quote\">&gt;Windows questions </span><a href=\"//boards.4channel.org/g/catalog#s=fwt\" class=\"quotelink\">&gt;&gt;&gt;/g/fwt</a>\
+    <br><br><span class=\"quote\">&gt;PC building? </span><a href=\"//boards.4channel.org/g/catalog#s=pcbg\" class=\"quotelink\">&gt;&gt;&gt;/g/pcbg</a>\
+    <br><br><span class=\"quote\">&gt;Programming questions </span><a href=\"//boards.4channel.org/g/catalog#s=dpt\" class=\"quotelink\">&gt;&gt;&gt;/g/dpt</a>\
+    <br><br><span class=\"quote\">&gt;Good, cheap, laptops </span><a href=\"//boards.4channel.org/g/catalog#s=tpg\" class=\"quotelink\">&gt;&gt;&gt;/g/tpg</a><br>\
+    <br><span class=\"quote\">&gt;Cheap electronics </span><a href=\"//boards.4channel.org/g/catalog#s=csg\" class=\"quotelink\">&gt;&gt;&gt;/g/csg</a><br>\
+    <br><span class=\"quote\">&gt;Server questions </span><a href=\"//boards.4channel.org/g/catalog#s=hsg\" class=\"quotelink\">&gt;&gt;&gt;/g/hsg</a><br>\
+    <br><span class=\"quote\">&gt;Buying headphones </span><a href=\"//boards.4channel.org/g/catalog#s=hpg\" class=\"quotelink\">&gt;&gt;&gt;/g/hpg</a><br>\
+    <br>How to find/activate any version of Windows?<br>https://rentry.org/installwindows<br><br>Previous Thread <a href=\"/g/thread/81404563#p81404563\" class=\"quotelink\">&gt;&gt;81404563</a>";
+
+    let expected_parsed_comment = "\
+    >Read the sticky: >>76759434\n\n\
+    >GNU/Linux questions >>>/g/fglt\n\n\
+    >Windows questions >>>/g/fwt\n\n\
+    >PC building? >>>/g/pcbg\n\n\
+    >Programming questions >>>/g/dpt\n\n\
+    >Good, cheap, laptops >>>/g/tpg\n\n\
+    >Cheap electronics >>>/g/csg\n\n\
+    >Server questions >>>/g/hsg\n\n\
+    >Buying headphones >>>/g/hpg\n\n\
+    How to find/activate any version of Windows?\n\
+    https://rentry.org/installwindows\n\n\
+    Previous Thread >>81404563";
+
+    let expected_spannables = vec![
+      Spannable { start: 18, len: 10, spannable_data: SpannableData::Link(PostLink::ThreadLink { board_code: String::from("g"), thread_no: 76759434, post_no: 76759434 }) },
+      Spannable { start: 0, len: 28, spannable_data: SpannableData::GreenText },
+      Spannable { start: 29, len: 22, spannable_data: SpannableData::GreenText },
+      Spannable { start: 51, len: 10, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("fglt") }) },
+      Spannable { start: 62, len: 20, spannable_data: SpannableData::GreenText },
+      Spannable { start: 82, len: 9, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("fwt") }) },
+      Spannable { start: 92, len: 15, spannable_data: SpannableData::GreenText },
+      Spannable { start: 107, len: 10, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("pcbg") }) },
+      Spannable { start: 118, len: 24, spannable_data: SpannableData::GreenText },
+      Spannable { start: 142, len: 9, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("dpt") }) },
+      Spannable { start: 152, len: 23, spannable_data: SpannableData::GreenText },
+      Spannable { start: 175, len: 9, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("tpg") }) },
+      Spannable { start: 185, len: 20, spannable_data: SpannableData::GreenText },
+      Spannable { start: 205, len: 9, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("csg") }) },
+      Spannable { start: 215, len: 19, spannable_data: SpannableData::GreenText },
+      Spannable { start: 234, len: 9, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("hsg") }) },
+      Spannable { start: 244, len: 20, spannable_data: SpannableData::GreenText },
+      Spannable { start: 264, len: 9, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("hpg") }) },
+      Spannable { start: 320, len: 33, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://rentry.org/installwindows") }) },
+      Spannable { start: 371, len: 10, spannable_data: SpannableData::Link(PostLink::ThreadLink { board_code: String::from("g"), thread_no: 81404563, post_no: 81404563 }) },
+    ];
+
+    let post_parser_context = PostParserContext::new(
+      81425984,
+      set!(),
+      set!(81425984)
+    );
+
+    run_test(81425984, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  // TODO: BoardLink
+  // TODO: SearchLink
+  // TODO: Unicode text (Japasene/Russian/some other?)
+
+  // Bunch of cross-thread (dead and alive) links
+  // Breakfast Baki, Maximum Tournament-hen.<br>The only rule is no weapons. Anything else goes.<br>OP for the finals: https://www.youtube.com/watch?v=9PY<wbr>FIgOaWz0<br><br>Last time: A flashback to Yuujiro&#039;s past in Vietnam.<br>Volume 21: <span class=\"deadlink\">&gt;&gt;220319165</span><br>Volume 22: <span class=\"deadlink\">&gt;&gt;220380103</span><br>Volume 23: <span class=\"deadlink\">&gt;&gt;220441774</span><br>Volume 24: <span class=\"deadlink\">&gt;&gt;220501577</span><br>Volume 25: <span class=\"deadlink\">&gt;&gt;220559839</span><br>Volume 26: <span class=\"deadlink\">&gt;&gt;220623109</span><br>Volume 27: <span class=\"deadlink\">&gt;&gt;220684674</span><br>Volume 28: <span class=\"deadlink\">&gt;&gt;220748482</span><br>Volume 29: <span class=\"deadlink\">&gt;&gt;220805232</span><br>Volume 30: <span class=\"deadlink\">&gt;&gt;220862935</span><br>Volume 31: <span class=\"deadlink\">&gt;&gt;220924399</span><br>Volume 32: <span class=\"deadlink\">&gt;&gt;220981838</span><br>Volume 33: <span class=\"deadlink\">&gt;&gt;221038807</span><br>Volume 34: <a href=\"/a/thread/221101420#p221101420\" class=\"quotelink\">&gt;&gt;221101420</a><br>Volume 35: <a href=\"/a/thread/221160344#p221160344\" class=\"quotelink\">&gt;&gt;221160344</a><br>Volume 36: <a href=\"/a/thread/221218747#p221218747\" class=\"quotelink\">&gt;&gt;221218747</a><br>Volume 37: <a href=\"/a/thread/221275313#p221275313\" class=\"quotelink\">&gt;&gt;221275313</a><br>Volume 38: <a href=\"/a/thread/221332969#p221332969\" class=\"quotelink\">&gt;&gt;221332969</a><br>Volume 39: <a href=\"/a/thread/221386198#p221386198\" class=\"quotelink\">&gt;&gt;221386198</a><br>Volume 40: <a href=\"/a/thread/221443978#p221443978\" class=\"quotelink\">&gt;&gt;221443978</a><br>https://archive.wakarimasen.moe/a/s<wbr>earch/subject/Storytime%3A%20Grappl<wbr>er%20Baki/
 }

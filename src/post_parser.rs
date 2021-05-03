@@ -6,6 +6,7 @@ pub mod post_parser {
   use std::collections::HashSet;
   use std::fmt;
   use regex::Regex;
+  use crate::util::helpers::SumBy;
 
   lazy_static! {
     static ref CRUDE_LINK_PATTERN: Regex = Regex::new(r"(https?://(?:[^\s]+).)").unwrap();
@@ -110,8 +111,8 @@ pub mod post_parser {
         return Option::None;
       }
 
-      let mut out_text_parts: Vec<String> = Vec::new();
-      let mut out_spannables: Vec<Spannable> = Vec::new();
+      let mut out_text_parts: Vec<String> = Vec::with_capacity(16);
+      let mut out_spannables: Vec<Spannable> = Vec::with_capacity(8);
       self.process_element(post_raw, &html_parsing_result.unwrap(), &mut out_text_parts, &mut out_spannables);
 
       let post_comment_parsed = PostCommentParsed::new(
@@ -133,7 +134,7 @@ pub mod post_parser {
         match node {
           Node::Text(text) => {
             let unescaped_text = String::from(html_escape::decode_html_entities(text.as_str()));
-            self.detect_links(&unescaped_text, out_spannables);
+            self.detect_links(out_text_parts, &unescaped_text, out_spannables);
 
             out_text_parts.push(unescaped_text);
           },
@@ -166,11 +167,12 @@ pub mod post_parser {
       }
     }
 
-    pub fn detect_links(&self, text: &String, out_spannables: &mut Vec<Spannable>) {
+    pub fn detect_links(&self, out_text_parts: &mut Vec<String>, text: &String, out_spannables: &mut Vec<Spannable>) {
       let mut capture_locations = CRUDE_LINK_PATTERN.capture_locations();
       let mut offset: usize = 0;
 
       let bytes = text.as_bytes();
+      let total_text_length = out_text_parts.iter().sum_by(&|string| string.len() as i32) as usize;
 
       loop {
         CRUDE_LINK_PATTERN.captures_read_at(&mut capture_locations, text, offset);
@@ -191,7 +193,7 @@ pub mod post_parser {
         let actual_link = String::from(&text[left_pointer..right_pointer]);
 
         let link_spannable = Spannable {
-          start: left_pointer,
+          start: total_text_length + left_pointer,
           len: (right_pointer - left_pointer),
           spannable_data: SpannableData::Link(PostLink::UrlLink { link: actual_link })
         };

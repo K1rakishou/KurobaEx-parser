@@ -50,4 +50,30 @@ embed)
     assert_eq!(expected, actual);
   }
 
+  #[test]
+  fn html_parser_test_equals_symbols_inside_tag() {
+    let html = "<a href=\"//boards.4channel.org/g/catalog#s=fglt\" class=\"quotelink\">&gt;&gt;&gt;/g/fglt</a>";
+
+    let html_parser = HtmlParser::new();
+    let nodes = html_parser.parse(html).unwrap();
+
+    let expected = "<a, href=//boards.4channel.org/g/catalog#s=fglt, class=quotelink>\n&gt;&gt;&gt;/g/fglt\n";
+
+    let actual = html_parser.debug_concat_into_string(&nodes);
+    assert_eq!(expected, actual);
+  }
+
+  #[test]
+  fn html_parser_test_space_symbols_inside_tag() {
+    let html = "<a href=\"//boards.4channel.org/  g/catalog#s=fglt\" class=\"quotelink\">&gt;&gt;&gt;/g/fglt</a>";
+
+    let html_parser = HtmlParser::new();
+    let nodes = html_parser.parse(html).unwrap();
+
+    let expected = "<a, href=//boards.4channel.org/  g/catalog#s=fglt, class=quotelink>\n&gt;&gt;&gt;/g/fglt\n";
+
+    let actual = html_parser.debug_concat_into_string(&nodes);
+    assert_eq!(expected, actual);
+  }
+
 }

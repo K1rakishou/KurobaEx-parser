@@ -42,9 +42,9 @@ impl HtmlParser {
   }
 
   fn parse_internal(&self, html: &[u8], start: usize) -> (Vec<Node>, usize) {
-    let mut out_nodes: Vec<Node> = Vec::new();
     let mut local_offset = start;
-    let mut current_buffer = Vec::new();
+    let mut out_nodes: Vec<Node> = Vec::with_capacity(16);
+    let mut current_buffer = Vec::with_capacity(16);
 
     while local_offset < html.len() {
       let curr_char = html[local_offset as usize] as char;
@@ -137,7 +137,7 @@ impl HtmlParser {
   }
 
   fn create_tag(&self, tag_raw: &String) -> Element {
-    let tag_parts = self.split_tag_raw_into_parts(&tag_raw);
+    let tag_parts = self.split_into_parts_by_separator(&tag_raw, ' ');
     if tag_parts.is_empty() {
       panic!("tag_parts is empty! tag_raw={}", tag_raw);
     }
@@ -151,9 +151,9 @@ impl HtmlParser {
         continue;
       }
 
-      let attribute_split_vec = tag_part.split("=").collect::<Vec<&str>>();
-      let attr_name = attribute_split_vec[0];
-      let mut attr_value = attribute_split_vec[1];
+      let attribute_split_vec = self.split_into_parts_by_separator(&tag_part, '=');
+      let attr_name = attribute_split_vec[0].as_str();
+      let mut attr_value = attribute_split_vec[1].as_str();
 
       if attr_value.starts_with('\"') {
         attr_value = &attr_value[1..]
@@ -161,6 +161,10 @@ impl HtmlParser {
 
       if attr_value.ends_with("\"") {
         attr_value = &attr_value[..(attr_value.len() - 1)]
+      }
+
+      if attr_name.is_empty() || attr_value.is_empty() {
+        continue;
       }
 
       attributes.insert(String::from(attr_name), String::from(attr_value));
@@ -176,16 +180,16 @@ impl HtmlParser {
     return Element {
       name: tag_name,
       attributes,
-      children: Vec::new(),
+      children: Vec::with_capacity(4),
       is_void_element
     };
   }
 
-  fn split_tag_raw_into_parts(&self, tag_raw: &String) -> Vec<String> {
+  fn split_into_parts_by_separator(&self, tag_raw: &String, separator: char) -> Vec<String> {
     let mut is_inside_string = false;
     let mut offset: usize = 0;
-    let mut tag_parts: Vec<String> = Vec::new();
-    let mut current_tag_part = String::new();
+    let mut tag_parts: Vec<String> = Vec::with_capacity(4);
+    let mut current_tag_part = String::with_capacity(16);
     let tag_bytes = tag_raw.as_bytes();
 
     while offset < tag_bytes.len() {
@@ -195,7 +199,7 @@ impl HtmlParser {
         is_inside_string = !is_inside_string;
       }
 
-      if ch == ' ' && !is_inside_string {
+      if ch == separator && !is_inside_string {
         tag_parts.push(current_tag_part.clone());
         current_tag_part.clear();
 

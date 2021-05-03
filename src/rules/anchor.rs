@@ -118,6 +118,7 @@ fn handle_href_attr<'a>(
             out_spannables.push(spannable);
           }
 
+          // TODO: add link suffixes (like >>76759434 →)
           out_text_parts.push(String::from(unescaped_text));
         }
       }
