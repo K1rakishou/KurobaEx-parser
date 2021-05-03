@@ -196,7 +196,9 @@ pub mod post_parser {
           spannable_data: SpannableData::Link(PostLink::UrlLink { link: actual_link })
         };
 
-        out_spannables.push(link_spannable);
+        if link_spannable.is_valid() {
+          out_spannables.push(link_spannable);
+        }
 
         offset = capture_end;
       }
