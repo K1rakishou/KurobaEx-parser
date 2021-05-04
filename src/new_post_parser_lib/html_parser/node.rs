@@ -1,5 +1,5 @@
-use crate::html_parser::element::Element;
 use std::fmt;
+use crate::Element;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Node {

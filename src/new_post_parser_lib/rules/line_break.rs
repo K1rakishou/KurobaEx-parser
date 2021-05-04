@@ -1,8 +1,5 @@
 use crate::rules::rule_handler::RuleHandler;
-use crate::comment_parser::comment_parser::Spannable;
-use crate::html_parser::element::Element;
-use crate::post_parser::post_parser::PostParserContext;
-use crate::PostRaw;
+use crate::{PostRaw, PostParserContext, Element, Spannable};
 
 pub struct LineBreakRuleHandler {}
 
@@ -13,7 +10,15 @@ impl LineBreakRuleHandler {
 }
 
 impl RuleHandler for LineBreakRuleHandler {
-  fn pre_handle(&self, _: &PostRaw, _: &PostParserContext, _: &Element, out_text_parts: &mut Vec<String>, _: &mut Vec<Spannable>) -> bool {
+
+  fn pre_handle(
+    &self,
+    _: &PostRaw,
+    _: &PostParserContext,
+    _: &Element,
+    out_text_parts: &mut Vec<String>,
+    _: &mut Vec<Spannable>
+  ) -> bool {
     out_text_parts.push(String::from('\n'));
     return true;
   }

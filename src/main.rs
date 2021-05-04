@@ -1,46 +1,5 @@
-use post_parser::post_parser::*;
 use std::collections::HashSet;
-
-#[macro_use]
-extern crate lazy_static;
-
-mod post_parser;
-mod comment_parser;
-mod parsing_error;
-
-mod rules {
-  pub mod anchor;
-  pub mod line_break;
-  pub mod word_break;
-  pub mod rule_handler;
-  pub mod span;
-  pub mod spoiler;
-}
-
-mod html_parser {
-  pub mod node;
-  pub mod element;
-  pub mod parser;
-}
-
-mod util {
-  pub mod macroses;
-  pub mod helpers;
-}
-
-mod tests {
-  pub mod post_parser_tests;
-  pub mod html_parser_tests;
-}
-
-pub struct PostRaw {
-  post_id: u64,
-  com: Option<String>,
-}
-
-struct ThreadRaw {
-  posts: Vec<PostRaw>,
-}
+use new_post_parser_lib::{ThreadRaw, PostRaw, set, PostParserContext, PostParser};
 
 fn main() {
   let post_comment_raw = "<span class=\"quote\">&gt;Read the sticky: <a href=\"/g/thread/76759434#p76759434\" \

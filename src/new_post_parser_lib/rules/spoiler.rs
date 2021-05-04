@@ -1,8 +1,5 @@
 use crate::rules::rule_handler::RuleHandler;
-use crate::PostRaw;
-use crate::post_parser::post_parser::PostParserContext;
-use crate::html_parser::element::Element;
-use crate::comment_parser::comment_parser::{Spannable, SpannableData, PostLink};
+use crate::{PostRaw, PostParserContext, Element, Spannable, SpannableData};
 use crate::html_parser::node::Node;
 use crate::util::helpers::SumBy;
 

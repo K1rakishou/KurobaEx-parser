@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test_main {
-  use crate::html_parser::parser::HtmlParser;
+  use new_post_parser_lib::{HtmlParser};
 
   #[test]
   fn html_parser_test_1() {

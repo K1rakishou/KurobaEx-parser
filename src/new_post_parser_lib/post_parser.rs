@@ -1,8 +1,6 @@
 pub mod post_parser {
-  use crate::comment_parser::comment_parser::{PostCommentParsed, Spannable, CommentParser, SpannableData, PostLink};
-  use crate::PostRaw;
+  use crate::{PostRaw, PostParserContext, PostParser, CommentParser, ParsedPost, PostCommentParsed, Spannable, SpannableData, PostLink, HtmlParser};
   use crate::html_parser::node::Node;
-  use crate::html_parser::parser::HtmlParser;
   use std::collections::HashSet;
   use std::fmt;
   use regex::Regex;
@@ -10,13 +8,6 @@ pub mod post_parser {
 
   lazy_static! {
     static ref CRUDE_LINK_PATTERN: Regex = Regex::new(r"(https?://(?:[^\s]+).)").unwrap();
-  }
-
-  #[derive(Debug)]
-  pub struct PostParserContext {
-    thread_id: u64,
-    my_replies: HashSet<u64>,
-    thread_posts: HashSet<u64>
   }
 
   impl PostParserContext {
@@ -50,10 +41,6 @@ pub mod post_parser {
 
   }
 
-  pub struct ParsedPost {
-    pub post_comment_parsed: Option<PostCommentParsed>,
-  }
-
   impl fmt::Display for ParsedPost {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
       return match &self.post_comment_parsed {
@@ -73,11 +60,6 @@ pub mod post_parser {
         post_comment_parsed
       }
     }
-  }
-
-  pub struct PostParser<'a> {
-    post_parser_context: &'a PostParserContext,
-    comment_parser: Box<CommentParser<'a>>,
   }
 
   impl PostParser<'_> {

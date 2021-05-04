@@ -1,8 +1,5 @@
 use crate::rules::rule_handler::{RuleHandler, RuleHandlerPostHandleMeta};
-use crate::comment_parser::comment_parser::{Spannable, SpannableData, PostLink};
-use crate::html_parser::element::Element;
-use crate::post_parser::post_parser::PostParserContext;
-use crate::PostRaw;
+use crate::{PostRaw, PostParserContext, Element, Spannable, PostLink, SpannableData};
 use crate::util::helpers::SumBy;
 use crate::html_parser::node::Node;
 use std::num::ParseIntError;
@@ -158,9 +155,10 @@ impl SpanHandler {
 
     let spannable = Spannable {
       start,
-      len, // TODO: maybe I could include the children tags' text length here too so in case when
-           // there is any kind of link inside green text we could mark that link as green too.
-           // Right now it may not work.
+      len,
+      // TODO: maybe I could include the children tags' text length here too so in case when
+      //  there is any kind of link inside green text we could mark that link as green too.
+      //  Right now it may not work.
       spannable_data: SpannableData::GreenText
     };
 

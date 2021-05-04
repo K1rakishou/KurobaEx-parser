@@ -1,16 +1,9 @@
 use crate::html_parser::node::Node;
 use linked_hash_map::LinkedHashMap;
 use std::fmt;
+use crate::Element;
 
 const CLASS_ATTR: &str = "class";
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Element {
-  pub name: String,
-  pub attributes: LinkedHashMap<String, String>,
-  pub children: Vec<Node>,
-  pub is_void_element: bool,
-}
 
 impl Element {
   pub fn has_class(&self, class_name: &str) -> bool {

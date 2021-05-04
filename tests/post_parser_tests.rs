@@ -1,11 +1,6 @@
 #[cfg(test)]
 mod test_main {
-  use crate::PostRaw;
-  use crate::post_parser::post_parser::{PostParser, PostParserContext};
-  use crate::comment_parser::comment_parser::Spannable;
-  use crate::comment_parser::comment_parser::SpannableData;
-  use crate::comment_parser::comment_parser::PostLink;
-  use crate::set;
+  use new_post_parser_lib::{PostParserContext, Spannable, PostRaw, PostParser, SpannableData, PostLink, set};
   use std::collections::HashSet;
 
   fn run_test(

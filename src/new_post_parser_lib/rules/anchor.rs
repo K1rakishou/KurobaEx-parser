@@ -1,11 +1,8 @@
-use crate::comment_parser::comment_parser::{Spannable, PostLink, SpannableData};
 use crate::rules::rule_handler::RuleHandler;
-use crate::html_parser::element::Element;
 use crate::html_parser::node::Node;
 use crate::parsing_error::ParsingError;
 use regex::Regex;
-use crate::post_parser::post_parser::PostParserContext;
-use crate::PostRaw;
+use crate::{PostRaw, PostParserContext, Element, Spannable, PostLink, SpannableData};
 use crate::util::helpers::SumBy;
 
 const TAG: &str = "AnchorRuleHandler";

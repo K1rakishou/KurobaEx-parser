@@ -1,7 +1,4 @@
-use crate::comment_parser::comment_parser::Spannable;
-use crate::html_parser::element::Element;
-use crate::post_parser::post_parser::PostParserContext;
-use crate::PostRaw;
+use crate::{PostRaw, PostParserContext, Element, Spannable};
 use crate::util::helpers::{SumBy, LastIndex};
 
 pub trait RuleHandler {

@@ -5,28 +5,16 @@ pub mod comment_parser {
   use crate::rules::span::SpanHandler;
   use crate::rules::rule_handler::RuleHandler;
   use crate::rules::line_break::LineBreakRuleHandler;
-  use crate::html_parser::element::Element;
   use crate::rules::word_break::WordBreakRuleHandler;
-  use crate::post_parser::post_parser::PostParserContext;
   use std::fmt;
   use std::fmt::Formatter;
-  use crate::PostRaw;
+  use crate::{PostRaw, PostParserContext, Element, ParsingRule, CommentParser, PostLink, SpannableData, Spannable, PostCommentParsed};
   use crate::set;
   use std::rc::Rc;
   use std::ops::Deref;
   use crate::rules::spoiler::SpoilerHandler;
 
   const TAG: &str = "CommentParser";
-
-  #[derive(Debug, PartialEq)]
-  pub enum PostLink {
-    Quote { post_no: u64 },
-    Dead { post_no: u64 },
-    UrlLink { link: String },
-    BoardLink { board_code: String },
-    SearchLink { board_code: String, search_query: String },
-    ThreadLink { board_code: String, thread_no: u64, post_no: u64 }
-  }
 
   impl fmt::Display for PostLink {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -53,13 +41,6 @@ pub mod comment_parser {
     }
   }
 
-  #[derive(Debug, PartialEq)]
-  pub enum SpannableData {
-    Link(PostLink),
-    Spoiler,
-    GreenText,
-  }
-
   impl fmt::Display for SpannableData {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
       return match self {
@@ -76,13 +57,6 @@ pub mod comment_parser {
     }
   }
 
-  #[derive(Debug, PartialEq)]
-  pub struct Spannable {
-    pub start: usize,
-    pub len: usize,
-    pub spannable_data: SpannableData
-  }
-
   impl Spannable {
     pub fn is_valid(&self) -> bool {
       return self.start >= 0 && self.len > 0
@@ -93,11 +67,6 @@ pub mod comment_parser {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
       write!(f, "Spannable(start: {}, len: {}, spannable_data: {})", self.start, self.len, self.spannable_data)
     }
-  }
-
-  pub struct PostCommentParsed {
-    pub comment_text: Box<String>,
-    pub spannables: Box<Vec<Spannable>>
   }
 
   impl fmt::Display for PostCommentParsed {
@@ -119,12 +88,6 @@ pub mod comment_parser {
         spannables
       }
     }
-  }
-
-  pub struct ParsingRule {
-    tag: String,
-    req_classes: HashSet<String>,
-    handler: Box<dyn RuleHandler>
   }
 
   impl ParsingRule {
@@ -154,11 +117,6 @@ pub mod comment_parser {
       return false;
     }
 
-  }
-
-  pub struct CommentParser<'a> {
-    post_parser_context: &'a PostParserContext,
-    rules: HashMap<String, Vec<Box<ParsingRule>>>
   }
 
   impl CommentParser<'_> {

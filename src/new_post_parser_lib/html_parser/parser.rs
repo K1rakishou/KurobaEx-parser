@@ -1,9 +1,9 @@
 use crate::html_parser::node::Node;
 use std::str;
-use crate::html_parser::element::Element;
 use std::collections::{HashSet};
 use linked_hash_map::LinkedHashMap;
 use std::iter::FromIterator;
+use crate::{Element, HtmlParser};
 
 lazy_static! {
   static ref VOID_ELEMENTS: HashSet<&'static str> = {
@@ -24,8 +24,6 @@ lazy_static! {
     return set;
   };
 }
-
-pub struct HtmlParser {}
 
 impl HtmlParser {
   pub fn new() -> HtmlParser {
