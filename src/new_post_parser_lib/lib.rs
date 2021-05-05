@@ -30,11 +30,13 @@ pub mod util {
   pub mod helpers;
 }
 
+#[derive(Debug)]
 pub struct PostRaw {
   pub post_id: u64,
   pub com: Option<String>,
 }
 
+#[derive(Debug)]
 pub struct ThreadRaw {
   pub posts: Vec<PostRaw>,
 }
