@@ -98,6 +98,7 @@ pub mod post_parser {
       self.process_element(post_raw, &html_parsing_result.unwrap(), &mut out_text_parts, &mut out_spannables);
 
       let post_comment_parsed = PostCommentParsed::new(
+        comment_raw,
         Box::new(out_text_parts.join("")),
         Box::new(out_spannables)
       );

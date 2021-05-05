@@ -37,7 +37,7 @@ fn main() {
     }
 
     let post_comment_parsed = post_parser.parse_post(&post_raw).post_comment_parsed.unwrap();
-    println!("comment: \n{}", post_comment_parsed.comment_text);
+    println!("comment: \n{}", post_comment_parsed.parsed_comment_text);
 
     for spannable in post_comment_parsed.spannables.iter() {
       println!("{}", spannable);
