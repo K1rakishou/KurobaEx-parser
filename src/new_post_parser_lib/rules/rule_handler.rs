@@ -1,5 +1,5 @@
 use crate::{PostRaw, PostParserContext, Element, Spannable};
-use crate::util::helpers::{SumBy, LastIndex};
+use crate::util::helpers::{SumBy};
 
 pub trait RuleHandler {
 

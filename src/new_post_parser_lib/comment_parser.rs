@@ -7,11 +7,8 @@ pub mod comment_parser {
   use crate::rules::line_break::LineBreakRuleHandler;
   use crate::rules::word_break::WordBreakRuleHandler;
   use std::fmt;
-  use std::fmt::Formatter;
+  use crate::set_immut;
   use crate::{PostRaw, PostParserContext, Element, ParsingRule, CommentParser, PostLink, SpannableData, Spannable, ParsedSpannableText};
-  use crate::set;
-  use std::rc::Rc;
-  use std::ops::Deref;
   use crate::rules::spoiler::SpoilerHandler;
 
   const TAG: &str = "CommentParser";
@@ -59,7 +56,7 @@ pub mod comment_parser {
 
   impl Spannable {
     pub fn is_valid(&self) -> bool {
-      return self.start >= 0 && self.len > 0
+      return self.len > 0
     }
   }
 
@@ -138,15 +135,14 @@ pub mod comment_parser {
     }
 
     pub fn add_default_rules(&mut self) {
-      self.add_rule(Box::new(ParsingRule::new("a", set!(), Box::new(AnchorRuleHandler::new()))));
-      self.add_rule(Box::new(ParsingRule::new("br", set!(), Box::new(LineBreakRuleHandler::new()))));
-      self.add_rule(Box::new(ParsingRule::new("wbr", set!(), Box::new(WordBreakRuleHandler::new()))));
-      self.add_rule(Box::new(ParsingRule::new("span", set!(), Box::new(SpanHandler::new()))));
-      self.add_rule(Box::new(ParsingRule::new("s", set!(), Box::new(SpoilerHandler::new()))));
+      self.add_rule(Box::new(ParsingRule::new("a", set_immut!(), Box::new(AnchorRuleHandler::new()))));
+      self.add_rule(Box::new(ParsingRule::new("br", set_immut!(), Box::new(LineBreakRuleHandler::new()))));
+      self.add_rule(Box::new(ParsingRule::new("wbr", set_immut!(), Box::new(WordBreakRuleHandler::new()))));
+      self.add_rule(Box::new(ParsingRule::new("span", set_immut!(), Box::new(SpanHandler::new()))));
+      self.add_rule(Box::new(ParsingRule::new("s", set_immut!(), Box::new(SpoilerHandler::new()))));
     }
 
     /// returns true if we managed to parse this node fully and don't need to go deeper for child nodes.
-    /// returns false
     pub fn pre_process_element(
       &self,
       post_raw: &PostRaw,
@@ -159,9 +155,7 @@ pub mod comment_parser {
 
       let rules = match rules_maybe {
         None => {
-          let error_formatted = format!("<No rule found for element with name \'{}\'>", element_name);
-          out_text_parts.push(String::from(error_formatted));
-
+          out_text_parts.push(element.collect_text());
           return true;
         },
         Some(_) => rules_maybe.unwrap()
@@ -201,7 +195,10 @@ pub mod comment_parser {
       let rules_maybe = self.rules.get(element_name);
 
       let rules = match rules_maybe {
-        None => panic!("No rule found for element with name \'{}\'", element_name),
+        None => {
+          out_text_parts.push(element.collect_text());
+          return;
+        },
         Some(_) => rules_maybe.unwrap()
       };
 

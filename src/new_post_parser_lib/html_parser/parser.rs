@@ -2,7 +2,6 @@ use crate::html_parser::node::Node;
 use std::str;
 use std::collections::{HashSet};
 use linked_hash_map::LinkedHashMap;
-use std::iter::FromIterator;
 use crate::{Element, HtmlParser};
 
 lazy_static! {

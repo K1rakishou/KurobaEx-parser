@@ -79,7 +79,7 @@ fn handle_href_attr<'a>(
   }
 
   let link_raw = href_value_maybe.unwrap();
-  let post_link_result = link_raw_to_post_link(post_raw, post_parser_context, &link_raw);
+  let post_link_result = link_raw_to_post_link(post_parser_context, &link_raw);
 
   match post_link_result {
     Err(err) => {
@@ -186,7 +186,6 @@ pub fn handle_single_post_quote(
 }
 
 fn link_raw_to_post_link(
-  post_raw: &PostRaw,
   post_parser_context: &PostParserContext,
   link_raw: &str
 ) -> Result<PostLink, ParsingError> {

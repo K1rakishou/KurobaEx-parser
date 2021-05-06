@@ -1,5 +1,7 @@
+#![deny(warnings)]
+
 use std::collections::HashSet;
-use new_post_parser_lib::{ThreadRaw, PostRaw, set, PostParserContext, PostParser};
+use new_post_parser_lib::{ThreadRaw, PostRaw, set_mut, PostParserContext, PostParser};
 
 fn main() {
   let post_comment_raw = "<span class=\"quote\">&gt;Read the sticky: <a href=\"/g/thread/76759434#p76759434\" \
@@ -18,15 +20,18 @@ fn main() {
     posts: vec![
       PostRaw {
         post_id: 333696415u64,
+        post_sub_id: 0u64,
         com: Option::Some(String::from(post_comment_raw))
       }
     ]
   };
 
   let post_parser_context = PostParserContext::new(
+    "4chan",
+    "g",
     333696415u64,
-    set!(),
-    set!(333918351)
+    set_mut!(),
+    set_mut!(333918351)
   );
 
   let post_parser = PostParser::new(&post_parser_context);

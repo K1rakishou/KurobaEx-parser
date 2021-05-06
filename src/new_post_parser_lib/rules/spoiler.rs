@@ -1,6 +1,5 @@
 use crate::rules::rule_handler::RuleHandler;
 use crate::{PostRaw, PostParserContext, Element, Spannable, SpannableData};
-use crate::html_parser::node::Node;
 use crate::util::helpers::SumBy;
 
 const TAG: &str = "SpoilerHandler";
@@ -30,21 +29,14 @@ impl RuleHandler for SpoilerHandler {
 
   fn post_handle(
     &self,
-    post_raw: &PostRaw,
-    post_parser_context: &PostParserContext,
-    element: &Element,
+    _: &PostRaw,
+    _: &PostParserContext,
+    _: &Element,
     prev_out_text_parts_index: usize,
     out_text_parts: &mut Vec<String>,
-    prev_out_spannables_index: usize,
+    _: usize,
     out_spannables: &mut Vec<Spannable>
   ) {
-    if prev_out_text_parts_index < 0  {
-      // Nothing was added since handle() call. This probably means that the current tag has an empty
-      // body.
-      eprintln!("{} prev_out_text_parts_index < 0 ({})", TAG, prev_out_text_parts_index);
-      return;
-    }
-
     if prev_out_text_parts_index == out_text_parts.len() {
       // Nothing was added since handle() call. This probably means that the current tag has an empty
       // body.

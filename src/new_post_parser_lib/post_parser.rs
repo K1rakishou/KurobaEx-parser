@@ -12,11 +12,15 @@ pub mod post_parser {
 
   impl PostParserContext {
     pub fn new(
+      site_name: &str,
+      board_code: &str,
       thread_id: u64,
       my_replies: HashSet<u64>,
       thread_posts: HashSet<u64>
     ) -> PostParserContext {
       return PostParserContext {
+        site_name: String::from(site_name),
+        board_code: String::from(board_code),
         thread_id,
         my_replies,
         thread_posts
@@ -89,8 +93,18 @@ pub mod post_parser {
 
       let html_parsing_result = html_parser.parse(comment_raw);
       if html_parsing_result.is_err() {
-        println!("Failed to parse comment_raw html, error={:?}", html_parsing_result.err().unwrap());
-        return Option::None;
+        let parser_error_message = format!(
+          "Failed to parse comment_raw html, error={:?}",
+          html_parsing_result.err()
+        );
+
+        let post_comment_parsed = ParsedSpannableText::new(
+          comment_raw,
+          Box::new(parser_error_message),
+          Box::new(Vec::new())
+        );
+
+        return Option::Some(post_comment_parsed);
       }
 
       let mut out_text_parts: Vec<String> = Vec::with_capacity(16);
@@ -241,7 +255,7 @@ pub mod post_parser {
         return left_pointer;
       }
 
-      while left_pointer >= 0 {
+      while left_pointer > 0 {
         let char_maybe = bytes.get(left_pointer);
         if char_maybe.is_none() {
           break

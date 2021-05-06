@@ -1,3 +1,6 @@
+#![deny(warnings)]
+#![allow(dead_code)]
+
 #[macro_use]
 extern crate lazy_static;
 
@@ -33,6 +36,7 @@ pub mod util {
 #[derive(Debug)]
 pub struct PostRaw {
   pub post_id: u64,
+  pub post_sub_id: u64,
   pub com: Option<String>,
 }
 
@@ -43,6 +47,8 @@ pub struct ThreadRaw {
 
 #[derive(Debug)]
 pub struct PostParserContext {
+  site_name: String,
+  board_code: String,
   thread_id: u64,
   my_replies: HashSet<u64>,
   thread_posts: HashSet<u64>

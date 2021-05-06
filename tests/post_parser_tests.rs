@@ -1,7 +1,21 @@
 #[cfg(test)]
 mod test_main {
-  use new_post_parser_lib::{PostParserContext, Spannable, PostRaw, PostParser, SpannableData, PostLink, set};
+  use new_post_parser_lib::{PostParserContext, Spannable, PostRaw, PostParser, SpannableData, PostLink, set_mut};
   use std::collections::HashSet;
+
+  fn create_post_parser_context(
+    thread_id: u64,
+    my_replies: HashSet<u64>,
+    thread_posts: HashSet<u64>
+  ) -> PostParserContext {
+    PostParserContext::new(
+      "4chan",
+      "g",
+      thread_id,
+      my_replies,
+      thread_posts
+    )
+  }
 
   fn run_test(
     post_id: u64,
@@ -12,6 +26,7 @@ mod test_main {
   ) {
     let post_raw = PostRaw {
       post_id,
+      post_sub_id: 0u64,
       com: Option::Some(String::from(raw_comment))
     };
 
@@ -40,10 +55,10 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
       Spannable { start: 19, len: 18, spannable_data: SpannableData::Link(PostLink::Dead { post_no: 333520391 }) }
     ];
 
-    let post_parser_context = PostParserContext::new(
+    let post_parser_context = create_post_parser_context(
       1234567890,
-      set!(),
-      set!()
+      set_mut!(),
+      set_mut!()
     );
 
     run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -62,10 +77,10 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
       Spannable { start: 12, len: 18, spannable_data: SpannableData::Link(PostLink::Dead { post_no: 333520391 }) }
     ];
 
-    let post_parser_context = PostParserContext::new(
+    let post_parser_context = create_post_parser_context(
       1234567890,
-      set!(),
-      set!(333520145)
+      set_mut!(),
+      set_mut!(333520145)
     );
 
     run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -84,10 +99,10 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
       Spannable { start: 17, len: 18, spannable_data: SpannableData::Link(PostLink::Dead { post_no: 333520391 }) }
     ];
 
-    let post_parser_context = PostParserContext::new(
+    let post_parser_context = create_post_parser_context(
       333520145,
-      set!(),
-      set!(333520145)
+      set_mut!(),
+      set_mut!(333520145)
     );
 
     run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -106,10 +121,10 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
       Spannable { start: 23, len: 18, spannable_data: SpannableData::Link(PostLink::Dead { post_no: 333520391 }) }
     ];
 
-    let post_parser_context = PostParserContext::new(
+    let post_parser_context = create_post_parser_context(
       333520145,
-      set!(333520145),
-      set!(333520145)
+      set_mut!(333520145),
+      set_mut!(333520145)
     );
 
     run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -128,10 +143,10 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
       Spannable { start: 22, len: 18, spannable_data: SpannableData::Link(PostLink::Dead { post_no: 333520391 }) }
     ];
 
-    let post_parser_context = PostParserContext::new(
+    let post_parser_context = create_post_parser_context(
       333520145,
-      set!(333520145),
-      set!(333520145)
+      set_mut!(333520145),
+      set_mut!(333520145)
     );
 
     run_test(333520145, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -150,10 +165,10 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
       Spannable { start: 23, len: 17, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 333520391 }) }
     ];
 
-    let post_parser_context = PostParserContext::new(
+    let post_parser_context = create_post_parser_context(
       333520145,
-      set!(333520145, 333520391),
-      set!(333520145, 333520391)
+      set_mut!(333520145, 333520391),
+      set_mut!(333520145, 333520391)
     );
 
     run_test(123, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -171,10 +186,10 @@ stop you</span><br><s>Should I use a female version of my name for maximal self-
       Spannable { start: 39, len: 68, spannable_data: SpannableData::Spoiler },
     ];
 
-    let post_parser_context = PostParserContext::new(
+    let post_parser_context = create_post_parser_context(
       333859392,
-      set!(),
-      set!(333890765)
+      set_mut!(),
+      set_mut!(333890765)
     );
 
     run_test(333890765, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -191,10 +206,10 @@ stop you</span><br><s>Should I use a female version of my name for maximal self-
       Spannable { start: 0, len: 11, spannable_data: SpannableData::GreenText },
     ];
 
-    let post_parser_context = PostParserContext::new(
+    let post_parser_context = create_post_parser_context(
       1234,
-      set!(),
-      set!(333863078)
+      set_mut!(),
+      set_mut!(333863078)
     );
 
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -211,10 +226,10 @@ stop you</span><br><s>Should I use a female version of my name for maximal self-
       Spannable { start: 73, len: 17, spannable_data: SpannableData::Link(PostLink::Dead { post_no: 34511118 }) },
     ];
 
-    let post_parser_context = PostParserContext::new(
+    let post_parser_context = create_post_parser_context(
       1234,
-      set!(),
-      set!(333918351)
+      set_mut!(),
+      set_mut!(333918351)
     );
 
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -231,10 +246,10 @@ stop you</span><br><s>Should I use a female version of my name for maximal self-
       Spannable { start: 73, len: 10, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 34511118 }) },
     ];
 
-    let post_parser_context = PostParserContext::new(
+    let post_parser_context = create_post_parser_context(
       1234,
-      set!(),
-      set!(333918351, 34511118)
+      set_mut!(),
+      set_mut!(333918351, 34511118)
     );
 
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -290,10 +305,10 @@ https://www.youtube.com/watch?v=57tu8AtKf9E";
       Spannable { start: 471, len: 43, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://www.youtube.com/watch?v=57tu8AtKf9E") }) },
     ];
 
-    let post_parser_context = PostParserContext::new(
+    let post_parser_context = create_post_parser_context(
       1234,
-      set!(),
-      set!()
+      set_mut!(),
+      set_mut!()
     );
 
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -323,10 +338,10 @@ https://www.youtube.com/watch?v=57tu8AtKf9E";
       },
     ];
 
-    let post_parser_context = PostParserContext::new(
+    let post_parser_context = create_post_parser_context(
       1234,
-      set!(),
-      set!(81423695)
+      set_mut!(),
+      set_mut!(81423695)
     );
 
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -383,10 +398,10 @@ https://www.youtube.com/watch?v=57tu8AtKf9E";
       Spannable { start: 371, len: 10, spannable_data: SpannableData::Link(PostLink::ThreadLink { board_code: String::from("g"), thread_no: 81404563, post_no: 81404563 }) },
     ];
 
-    let post_parser_context = PostParserContext::new(
+    let post_parser_context = create_post_parser_context(
       81425984,
-      set!(),
-      set!(81425984)
+      set_mut!(),
+      set_mut!(81425984)
     );
 
     run_test(81425984, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -394,11 +409,15 @@ https://www.youtube.com/watch?v=57tu8AtKf9E";
 
   // TODO: BoardLink
   // TODO: SearchLink
-  // TODO: Unicode text (Japasene/Russian/some other?)
 
   // Bunch of cross-thread (dead and alive) links
   // Breakfast Baki, Maximum Tournament-hen.<br>The only rule is no weapons. Anything else goes.<br>OP for the finals: https://www.youtube.com/watch?v=9PY<wbr>FIgOaWz0<br><br>Last time: A flashback to Yuujiro&#039;s past in Vietnam.<br>Volume 21: <span class=\"deadlink\">&gt;&gt;220319165</span><br>Volume 22: <span class=\"deadlink\">&gt;&gt;220380103</span><br>Volume 23: <span class=\"deadlink\">&gt;&gt;220441774</span><br>Volume 24: <span class=\"deadlink\">&gt;&gt;220501577</span><br>Volume 25: <span class=\"deadlink\">&gt;&gt;220559839</span><br>Volume 26: <span class=\"deadlink\">&gt;&gt;220623109</span><br>Volume 27: <span class=\"deadlink\">&gt;&gt;220684674</span><br>Volume 28: <span class=\"deadlink\">&gt;&gt;220748482</span><br>Volume 29: <span class=\"deadlink\">&gt;&gt;220805232</span><br>Volume 30: <span class=\"deadlink\">&gt;&gt;220862935</span><br>Volume 31: <span class=\"deadlink\">&gt;&gt;220924399</span><br>Volume 32: <span class=\"deadlink\">&gt;&gt;220981838</span><br>Volume 33: <span class=\"deadlink\">&gt;&gt;221038807</span><br>Volume 34: <a href=\"/a/thread/221101420#p221101420\" class=\"quotelink\">&gt;&gt;221101420</a><br>Volume 35: <a href=\"/a/thread/221160344#p221160344\" class=\"quotelink\">&gt;&gt;221160344</a><br>Volume 36: <a href=\"/a/thread/221218747#p221218747\" class=\"quotelink\">&gt;&gt;221218747</a><br>Volume 37: <a href=\"/a/thread/221275313#p221275313\" class=\"quotelink\">&gt;&gt;221275313</a><br>Volume 38: <a href=\"/a/thread/221332969#p221332969\" class=\"quotelink\">&gt;&gt;221332969</a><br>Volume 39: <a href=\"/a/thread/221386198#p221386198\" class=\"quotelink\">&gt;&gt;221386198</a><br>Volume 40: <a href=\"/a/thread/221443978#p221443978\" class=\"quotelink\">&gt;&gt;221443978</a><br>https://archive.wakarimasen.moe/a/s<wbr>earch/subject/Storytime%3A%20Grappl<wbr>er%20Baki/
 
+  // TODO
   // Link with <wbr> tags inside. We are not handling it correctly.
   // <a href="#p221656514" class="quotelink">&gt;&gt;221656514</a><br>Be seeing you in the next rotation anons!<br>https://s1.desu-usergeneratedconten<wbr>t.xyz/a/image/1614/51/1614513969521<wbr>.png
+
+  // TODO: Unicode text (Japasene/Russian/some other?)
+  // Japanese text with quote
+  // <a href="#p221655599" class="quotelink">&gt;&gt;221655599</a><br>Aaaaaaa the day can&#039;t be over yet<br><br>だれか !!!時よ止まれ,お願いします！！！
 }

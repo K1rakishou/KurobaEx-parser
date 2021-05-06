@@ -1,5 +1,4 @@
 use crate::html_parser::node::Node;
-use linked_hash_map::LinkedHashMap;
 use std::fmt;
 use crate::Element;
 
