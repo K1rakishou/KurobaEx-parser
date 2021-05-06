@@ -37,7 +37,7 @@ pub mod util {
 pub struct PostRaw {
   pub post_id: u64,
   pub post_sub_id: u64,
-  pub com: Option<String>,
+  pub com: String,
 }
 
 #[derive(Debug)]
@@ -79,7 +79,12 @@ pub struct ParsingRule {
 }
 
 pub struct ParsedPost {
-  pub post_comment_parsed: Option<ParsedSpannableText>,
+  pub site_name: String,
+  pub board_code: String,
+  pub thread_id: u64,
+  pub post_id: u64,
+  pub post_sub_id: u64,
+  pub post_comment_parsed: ParsedSpannableText,
 }
 
 pub struct ParsedSpannableText {

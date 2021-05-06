@@ -47,20 +47,23 @@ pub mod post_parser {
 
   impl fmt::Display for ParsedPost {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-      return match &self.post_comment_parsed {
-        None => {
-          write!(f, "ParsedPost(post_comment_parsed: None")
-        }
-        Some(value) => {
-          write!(f, "ParsedPost(post_comment_parsed: {}", value)
-        }
-      };
+      return write!(f, "ParsedPost(post_comment_parsed: {}", &self.post_comment_parsed);
     }
   }
 
   impl ParsedPost {
-    pub fn new(post_comment_parsed: Option<ParsedSpannableText>) -> ParsedPost {
+    pub fn new(
+      post_parser_context: &PostParserContext,
+      post_id: u64,
+      post_sub_id: u64,
+      post_comment_parsed: ParsedSpannableText
+    ) -> ParsedPost {
       ParsedPost {
+        site_name: post_parser_context.site_name.clone(),
+        board_code: post_parser_context.board_code.clone(),
+        thread_id: post_parser_context.thread_id,
+        post_id,
+        post_sub_id,
         post_comment_parsed
       }
     }
@@ -78,17 +81,20 @@ pub mod post_parser {
     }
 
     pub fn parse_post(&self, post_raw: &PostRaw) -> ParsedPost {
-      let mut post = ParsedPost::new(Option::None);
-
-      let comment = post_raw.com.as_ref();
-      if comment.is_some() {
-        post.post_comment_parsed = self.parse_comment(comment.unwrap().as_str(), post_raw);
-      }
-
-      return post
+      return ParsedPost::new(
+        self.post_parser_context,
+        post_raw.post_id,
+        post_raw.post_sub_id,
+        self.parse_comment(post_raw)
+      )
     }
 
-    pub fn parse_comment(&self, comment_raw: &str, post_raw: &PostRaw) -> Option<ParsedSpannableText> {
+    pub fn parse_comment(&self, post_raw: &PostRaw) -> ParsedSpannableText {
+      let comment_raw = &post_raw.com;
+      if comment_raw.is_empty() {
+        return ParsedSpannableText::empty();
+      }
+
       let html_parser = HtmlParser::new();
 
       let html_parsing_result = html_parser.parse(comment_raw);
@@ -104,20 +110,18 @@ pub mod post_parser {
           Box::new(Vec::new())
         );
 
-        return Option::Some(post_comment_parsed);
+        return post_comment_parsed;
       }
 
       let mut out_text_parts: Vec<String> = Vec::with_capacity(16);
       let mut out_spannables: Vec<Spannable> = Vec::with_capacity(8);
       self.process_element(post_raw, &html_parsing_result.unwrap(), &mut out_text_parts, &mut out_spannables);
 
-      let post_comment_parsed = ParsedSpannableText::new(
+      return ParsedSpannableText::new(
         comment_raw,
         Box::new(out_text_parts.join("")),
         Box::new(out_spannables)
       );
-
-      return Option::Some(post_comment_parsed);
     }
 
     fn process_element(

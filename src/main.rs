@@ -21,7 +21,7 @@ fn main() {
       PostRaw {
         post_id: 333696415u64,
         post_sub_id: 0u64,
-        com: Option::Some(String::from(post_comment_raw))
+        com: String::from(post_comment_raw)
       }
     ]
   };
@@ -37,11 +37,7 @@ fn main() {
   let post_parser = PostParser::new(&post_parser_context);
 
   for post_raw in thread_raw.posts {
-    if post_raw.com.is_none() {
-      continue;
-    }
-
-    let post_comment_parsed = post_parser.parse_post(&post_raw).post_comment_parsed.unwrap();
+    let post_comment_parsed = post_parser.parse_post(&post_raw).post_comment_parsed;
     println!("comment: \n{}", post_comment_parsed.parsed_text);
 
     for spannable in post_comment_parsed.spannables.iter() {

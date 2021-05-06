@@ -86,6 +86,14 @@ pub mod comment_parser {
         spannables
       }
     }
+
+    pub fn empty() -> ParsedSpannableText {
+      return ParsedSpannableText {
+        original_text: String::new(),
+        parsed_text: Box::new(String::new()),
+        spannables: Box::new(Vec::new())
+      }
+    }
   }
 
   impl ParsingRule {

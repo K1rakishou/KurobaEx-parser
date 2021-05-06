@@ -27,11 +27,11 @@ mod test_main {
     let post_raw = PostRaw {
       post_id,
       post_sub_id: 0u64,
-      com: Option::Some(String::from(raw_comment))
+      com: String::from(raw_comment)
     };
 
     let post_parser = PostParser::new(&post_parser_context);
-    let post_comment_parsed = post_parser.parse_post(&post_raw).post_comment_parsed.unwrap();
+    let post_comment_parsed = post_parser.parse_post(&post_raw).post_comment_parsed;
     let spannables = post_comment_parsed.spannables;
 
     assert_eq!(expected_parsed_comment, post_comment_parsed.parsed_text.as_str());
