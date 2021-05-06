@@ -77,8 +77,8 @@ pub struct ParsedPost {
 }
 
 pub struct ParsedSpannableText {
-  pub original_comment_text: String,
-  pub parsed_comment_text: Box<String>,
+  pub original_text: String,
+  pub parsed_text: Box<String>,
   pub spannables: Box<Vec<Spannable>>
 }
 

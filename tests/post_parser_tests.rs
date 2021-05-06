@@ -19,7 +19,7 @@ mod test_main {
     let post_comment_parsed = post_parser.parse_post(&post_raw).post_comment_parsed.unwrap();
     let spannables = post_comment_parsed.spannables;
 
-    assert_eq!(expected_parsed_comment, post_comment_parsed.parsed_comment_text.as_str());
+    assert_eq!(expected_parsed_comment, post_comment_parsed.parsed_text.as_str());
     assert_eq!(expected_spannables.len(), spannables.len());
 
     for index in 0 .. spannables.len() {

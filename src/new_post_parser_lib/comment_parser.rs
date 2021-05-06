@@ -71,7 +71,7 @@ pub mod comment_parser {
 
   impl fmt::Display for ParsedSpannableText {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-      write!(f, "ParsedSpannableText(comment_text: {}", self.parsed_comment_text).unwrap();
+      write!(f, "ParsedSpannableText(comment_text: {}", self.parsed_text).unwrap();
 
       for spannable in self.spannables.iter() {
         write!(f, ", spannable: {}", spannable).unwrap();
@@ -84,8 +84,8 @@ pub mod comment_parser {
   impl ParsedSpannableText {
     pub fn new(comment_raw: &str, comment_text: Box<String>, spannables: Box<Vec<Spannable>>) -> ParsedSpannableText {
       ParsedSpannableText {
-        original_comment_text: String::from(comment_raw),
-        parsed_comment_text: comment_text,
+        original_text: String::from(comment_raw),
+        parsed_text: comment_text,
         spannables
       }
     }
