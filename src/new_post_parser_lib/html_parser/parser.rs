@@ -32,31 +32,34 @@ impl HtmlParser {
 
   pub fn parse(&self, html: &str) -> Result<Vec<Node>, &str> {
     let (result_nodes, _) = self.parse_internal(
-      html.as_bytes(),
+      &html.encode_utf16().collect::<Vec<u16>>(),
       0,
     );
 
     return Result::Ok(result_nodes);
   }
 
-  fn parse_internal(&self, html: &[u8], start: usize) -> (Vec<Node>, usize) {
+  //noinspection DuplicatedCode
+  fn parse_internal(&self, html: &Vec<u16>, start: usize) -> (Vec<Node>, usize) {
     let mut local_offset = start;
     let mut out_nodes: Vec<Node> = Vec::with_capacity(16);
-    let mut current_buffer = Vec::with_capacity(16);
+    let mut current_buffer: Vec<u16> = Vec::with_capacity(16);
 
     while local_offset < html.len() {
-      let curr_char = html[local_offset as usize] as char;
+      let curr_char = html[local_offset as usize] as u16;
 
-      if curr_char == '<' {
+      if curr_char == '<' as u16 {
         if current_buffer.len() > 0 {
-          out_nodes.push(Node::Text(String::from_iter(&current_buffer)));
+          let u16_string = String::from_utf16_lossy(&current_buffer.as_slice());
+
+          out_nodes.push(Node::Text(u16_string));
           current_buffer.clear();
         }
 
         local_offset += 1;
 
-        let next_char = html[local_offset as usize] as char;
-        if next_char == '/' {
+        let next_char = html[local_offset as usize] as u16;
+        if next_char == '/' as u16 {
           let offset = self.skip_tag_end(html, local_offset);
           local_offset = offset;
 
@@ -75,20 +78,22 @@ impl HtmlParser {
     }
 
     if current_buffer.len() > 0 {
-      out_nodes.push(Node::Text(String::from_iter(&current_buffer)));
+      let u16_string = String::from_utf16_lossy(&current_buffer.as_slice());
+
+      out_nodes.push(Node::Text(u16_string));
       current_buffer.clear();
     }
 
     return (out_nodes, local_offset);
   }
 
-  fn parse_tag(&self, html: &[u8], start: usize) -> (Element, usize) {
+  fn parse_tag(&self, html: &Vec<u16>, start: usize) -> (Element, usize) {
     let mut local_offset = start;
-    let mut tag_raw: Vec<char> = Vec::with_capacity(32);
+    let mut tag_raw: Vec<u16> = Vec::with_capacity(32);
 
     while local_offset < html.len() {
-      let ch = html[local_offset as usize] as char;
-      if ch == '>' {
+      let ch = html[local_offset as usize] as u16;
+      if ch == '>' as u16 {
         break;
       }
 
@@ -99,7 +104,7 @@ impl HtmlParser {
     // Skip the ">"
     local_offset += 1;
 
-    let element = self.create_tag(&String::from_iter(tag_raw));
+    let element = self.create_tag(&String::from_utf16_lossy(tag_raw.as_slice()));
     if element.is_void_element {
       return (element, local_offset);
     }
@@ -119,12 +124,12 @@ impl HtmlParser {
     return (updated_element, new_offset);
   }
 
-  fn skip_tag_end(&self, html: &[u8], start: usize) -> usize {
+  fn skip_tag_end(&self, html: &Vec<u16>, start: usize) -> usize {
     let mut local_offset = start;
 
     while local_offset < html.len() {
-      let ch = html[local_offset as usize] as char;
-      if ch == '>' {
+      let ch = html[local_offset as usize] as u16;
+      if ch == '>' as u16 {
         return local_offset + 1;
       }
 
@@ -135,7 +140,7 @@ impl HtmlParser {
   }
 
   fn create_tag(&self, tag_raw: &String) -> Element {
-    let tag_parts = self.split_into_parts_by_separator(&tag_raw, ' ');
+    let tag_parts = self.split_into_parts_by_separator(&tag_raw, ' ' as u16);
     if tag_parts.is_empty() {
       panic!("tag_parts is empty! tag_raw={}", tag_raw);
     }
@@ -149,7 +154,7 @@ impl HtmlParser {
         continue;
       }
 
-      let attribute_split_vec = self.split_into_parts_by_separator(&tag_part, '=');
+      let attribute_split_vec = self.split_into_parts_by_separator(&tag_part, '=' as u16);
       let attr_name = attribute_split_vec[0].as_str();
       let mut attr_value = attribute_split_vec[1].as_str();
 
@@ -183,22 +188,23 @@ impl HtmlParser {
     };
   }
 
-  fn split_into_parts_by_separator(&self, tag_raw: &String, separator: char) -> Vec<String> {
+  fn split_into_parts_by_separator(&self, tag_raw: &String, separator: u16) -> Vec<String> {
     let mut is_inside_string = false;
     let mut offset: usize = 0;
     let mut tag_parts: Vec<String> = Vec::with_capacity(4);
-    let mut current_tag_part = String::with_capacity(16);
-    let tag_bytes = tag_raw.as_bytes();
+    let mut current_tag_part: Vec<u16> = Vec::with_capacity(16);
+    let tag_bytes = tag_raw.encode_utf16().collect::<Vec<u16>>();
 
     while offset < tag_bytes.len() {
-      let ch = tag_bytes[offset as usize] as char;
+      let ch = tag_bytes[offset as usize] as u16;
 
-      if ch == '\"' {
+      if ch == '\"' as u16 {
         is_inside_string = !is_inside_string;
       }
 
       if ch == separator && !is_inside_string {
-        tag_parts.push(current_tag_part.clone());
+        let u16_string = String::from_utf16_lossy(&current_tag_part.as_slice());
+        tag_parts.push(u16_string.clone());
         current_tag_part.clear();
 
         offset += 1;
@@ -210,7 +216,8 @@ impl HtmlParser {
     }
 
     if current_tag_part.len() > 0 {
-      tag_parts.push(current_tag_part.clone());
+      let u16_string = String::from_utf16_lossy(&current_tag_part.as_slice());
+      tag_parts.push(u16_string.clone());
       current_tag_part.clear();
     }
 
