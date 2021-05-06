@@ -73,10 +73,10 @@ pub struct ParsingRule {
 }
 
 pub struct ParsedPost {
-  pub post_comment_parsed: Option<PostCommentParsed>,
+  pub post_comment_parsed: Option<ParsedSpannableText>,
 }
 
-pub struct PostCommentParsed {
+pub struct ParsedSpannableText {
   pub original_comment_text: String,
   pub parsed_comment_text: Box<String>,
   pub spannables: Box<Vec<Spannable>>

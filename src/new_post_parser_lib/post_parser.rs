@@ -1,5 +1,5 @@
 pub mod post_parser {
-  use crate::{PostRaw, PostParserContext, PostParser, CommentParser, ParsedPost, PostCommentParsed, Spannable, SpannableData, PostLink, HtmlParser};
+  use crate::{PostRaw, PostParserContext, PostParser, CommentParser, ParsedPost, ParsedSpannableText, Spannable, SpannableData, PostLink, HtmlParser};
   use crate::html_parser::node::Node;
   use std::collections::HashSet;
   use std::fmt;
@@ -55,7 +55,7 @@ pub mod post_parser {
   }
 
   impl ParsedPost {
-    pub fn new(post_comment_parsed: Option<PostCommentParsed>) -> ParsedPost {
+    pub fn new(post_comment_parsed: Option<ParsedSpannableText>) -> ParsedPost {
       ParsedPost {
         post_comment_parsed
       }
@@ -84,7 +84,7 @@ pub mod post_parser {
       return post
     }
 
-    pub fn parse_comment(&self, comment_raw: &str, post_raw: &PostRaw) -> Option<PostCommentParsed> {
+    pub fn parse_comment(&self, comment_raw: &str, post_raw: &PostRaw) -> Option<ParsedSpannableText> {
       let html_parser = HtmlParser::new();
 
       let html_parsing_result = html_parser.parse(comment_raw);
@@ -97,7 +97,7 @@ pub mod post_parser {
       let mut out_spannables: Vec<Spannable> = Vec::with_capacity(8);
       self.process_element(post_raw, &html_parsing_result.unwrap(), &mut out_text_parts, &mut out_spannables);
 
-      let post_comment_parsed = PostCommentParsed::new(
+      let post_comment_parsed = ParsedSpannableText::new(
         comment_raw,
         Box::new(out_text_parts.join("")),
         Box::new(out_spannables)
