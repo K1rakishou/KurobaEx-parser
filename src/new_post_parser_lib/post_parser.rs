@@ -89,6 +89,17 @@ pub mod post_parser {
       )
     }
 
+    pub fn iterate_comment_nodes(&self, post_comment: &String, iterator: &dyn Fn(&Node, &String)) {
+      let html_parser = HtmlParser::new();
+      let html_parsing_result = html_parser.parse(post_comment);
+
+      if html_parsing_result.is_err() {
+        return;
+      }
+
+      self.iterate_element(&html_parsing_result.unwrap(), post_comment, iterator);
+    }
+
     pub fn parse_comment(&self, post_raw: &PostRaw) -> ParsedSpannableText {
       let comment_raw = &post_raw.com;
       if comment_raw.is_empty() {
@@ -164,6 +175,28 @@ pub mod post_parser {
                 prev_out_spannables_index,
                 out_spannables
               )
+            }
+          },
+        }
+      }
+    }
+
+    fn iterate_element(
+      &self,
+      nodes: &Vec<Node>,
+      post_comment: &String,
+      iterator: &dyn Fn(&Node, &String)
+    ) {
+      for node in nodes {
+        match node {
+          Node::Text(_) => {
+            iterator(&node, post_comment);
+          },
+          Node::Element(element) => {
+            iterator(&node, post_comment);
+
+            if !element.children.is_empty() {
+              self.iterate_element(&element.children, &post_comment, &iterator);
             }
           },
         }
