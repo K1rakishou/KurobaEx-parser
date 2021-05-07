@@ -1,5 +1,5 @@
 pub mod post_parser {
-  use crate::{PostRaw, PostParserContext, PostParser, CommentParser, ParsedPost, ParsedSpannableText, Spannable, SpannableData, PostLink, HtmlParser, TextPart, Element};
+  use crate::{PostRaw, PostParserContext, PostParser, CommentParser, ParsedPost, ParsedSpannableText, Spannable, SpannableData, PostLink, HtmlParser, TextPart};
   use crate::html_parser::node::Node;
   use std::collections::HashSet;
   use std::fmt;
@@ -80,20 +80,18 @@ pub mod post_parser {
       };
     }
 
-    pub fn is_element_supported(&self, element: &Element) -> bool {
+    pub fn is_element_supported(&self, tag_name: &str, attr_name: &str) -> bool {
       let rules = &self.comment_parser.rules;
 
-      if !rules.contains_key(&element.name) {
+      if !rules.contains_key(tag_name) {
         return false;
       }
 
-      let tag_rules = self.comment_parser.rules.get(&element.name).unwrap();
+      let tag_rules = self.comment_parser.rules.get(tag_name).unwrap();
 
       for tag_rule in tag_rules {
-        for (attribute_name, _) in &element.attributes {
-          if !tag_rule.req_attributes.contains(attribute_name) {
-            return false;
-          }
+        if !tag_rule.req_attributes.contains(attr_name) {
+          return false;
         }
       }
 
