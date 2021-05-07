@@ -22,7 +22,7 @@ mod rules {
   pub mod spoiler;
 }
 
-mod html_parser {
+pub mod html_parser {
   pub mod node;
   pub mod element;
   pub mod parser;
