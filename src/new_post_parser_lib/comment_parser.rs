@@ -97,24 +97,24 @@ pub mod comment_parser {
   }
 
   impl ParsingRule {
-    pub fn new(tag: &str, req_classes: HashSet<String>, handler: Box<dyn RuleHandler>) -> ParsingRule {
+    pub fn new(tag: &str, req_attributes: HashSet<String>, handler: Box<dyn RuleHandler>) -> ParsingRule {
       ParsingRule {
         tag: String::from(tag),
-        req_classes,
+        req_attributes,
         handler
       }
     }
 
     pub fn high_priority(&self) -> bool {
-      return self.req_classes.len() > 0;
+      return self.req_attributes.len() > 0;
     }
 
     pub fn applies(&self, element: &Element) -> bool {
-      if self.req_classes.is_empty() {
+      if self.req_attributes.is_empty() {
         return true
       }
 
-      for req_class in &self.req_classes {
+      for req_class in &self.req_attributes {
         if element.has_class(&req_class) {
           return true;
         }

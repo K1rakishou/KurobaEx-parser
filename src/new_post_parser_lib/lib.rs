@@ -91,7 +91,7 @@ pub struct CommentParser<'a> {
 
 pub struct ParsingRule {
   tag: String,
-  req_classes: HashSet<String>,
+  req_attributes: HashSet<String>,
   handler: Box<dyn RuleHandler>
 }
 
