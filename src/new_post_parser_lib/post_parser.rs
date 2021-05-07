@@ -1,10 +1,10 @@
 pub mod post_parser {
-  use crate::{PostRaw, PostParserContext, PostParser, CommentParser, ParsedPost, ParsedSpannableText, Spannable, SpannableData, PostLink, HtmlParser};
+  use crate::{PostRaw, PostParserContext, PostParser, CommentParser, ParsedPost, ParsedSpannableText, Spannable, SpannableData, PostLink, HtmlParser, TextPart};
   use crate::html_parser::node::Node;
   use std::collections::HashSet;
   use std::fmt;
   use regex::Regex;
-  use crate::util::helpers::SumBy;
+  use crate::util::helpers::{SumBy, MapJoin};
 
   lazy_static! {
     static ref CRUDE_LINK_PATTERN: Regex = Regex::new(r"(https?://(?:[^\s]+).)").unwrap();
@@ -113,13 +113,15 @@ pub mod post_parser {
         return post_comment_parsed;
       }
 
-      let mut out_text_parts: Vec<String> = Vec::with_capacity(16);
+      let mut out_text_parts: Vec<TextPart> = Vec::with_capacity(16);
       let mut out_spannables: Vec<Spannable> = Vec::with_capacity(8);
       self.process_element(post_raw, &html_parsing_result.unwrap(), &mut out_text_parts, &mut out_spannables);
 
+      let total_size = out_text_parts.iter().sum_by(&|text_part| text_part.characters_count as i32) as usize;
+
       return ParsedSpannableText::new(
         comment_raw,
-        Box::new(out_text_parts.join("")),
+        Box::new(out_text_parts.iter().map_join_cap(total_size, "", &|text_part| text_part.text.as_str())),
         Box::new(out_spannables)
       );
     }
@@ -128,7 +130,7 @@ pub mod post_parser {
       &self,
       post_raw: &PostRaw,
       nodes: &Vec<Node>,
-      out_text_parts: &mut Vec<String>,
+      out_text_parts: &mut Vec<TextPart>,
       out_spannables: &mut Vec<Spannable>
     ) {
       for node in nodes {
@@ -137,7 +139,7 @@ pub mod post_parser {
             let unescaped_text = String::from(html_escape::decode_html_entities(text.as_str()));
             self.detect_links(out_text_parts, &unescaped_text, out_spannables);
 
-            out_text_parts.push(unescaped_text);
+            out_text_parts.push(TextPart::new(unescaped_text));
           },
           Node::Element(element) => {
             // store the current last indexes of out_text_parts/out_spannables because we may need
@@ -168,12 +170,12 @@ pub mod post_parser {
       }
     }
 
-    pub fn detect_links(&self, out_text_parts: &mut Vec<String>, text: &String, out_spannables: &mut Vec<Spannable>) {
+    pub fn detect_links(&self, out_text_parts: &mut Vec<TextPart>, text: &String, out_spannables: &mut Vec<Spannable>) {
       let mut capture_locations = CRUDE_LINK_PATTERN.capture_locations();
       let mut offset: usize = 0;
 
       let bytes = text.as_bytes();
-      let total_text_length = out_text_parts.iter().sum_by(&|string| string.len() as i32) as usize;
+      let total_text_length = out_text_parts.iter().sum_by(&|string| string.characters_count as i32) as usize;
 
       loop {
         CRUDE_LINK_PATTERN.captures_read_at(&mut capture_locations, text, offset);

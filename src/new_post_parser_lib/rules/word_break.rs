@@ -1,5 +1,5 @@
 use crate::rules::rule_handler::RuleHandler;
-use crate::{PostRaw, PostParserContext, Element, Spannable};
+use crate::{PostRaw, PostParserContext, Element, Spannable, TextPart};
 
 pub struct WordBreakRuleHandler {}
 
@@ -16,7 +16,7 @@ impl RuleHandler for WordBreakRuleHandler {
     _: &PostRaw,
     _: &PostParserContext,
     _: &Element,
-    _: &mut Vec<String>,
+    _: &mut Vec<TextPart>,
     _: &mut Vec<Spannable>
   ) -> bool {
     return true;
@@ -28,7 +28,7 @@ impl RuleHandler for WordBreakRuleHandler {
     _: &PostParserContext,
     _: &Element,
     _: usize,
-    _: &mut Vec<String>,
+    _: &mut Vec<TextPart>,
     _: usize,
     _: &mut Vec<Spannable>
   ) {

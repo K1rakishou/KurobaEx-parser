@@ -7,7 +7,7 @@ pub mod comment_parser {
   use crate::rules::line_break::LineBreakRuleHandler;
   use crate::rules::word_break::WordBreakRuleHandler;
   use std::fmt;
-  use crate::set_immut;
+  use crate::{set_immut, TextPart};
   use crate::{PostRaw, PostParserContext, Element, ParsingRule, CommentParser, PostLink, SpannableData, Spannable, ParsedSpannableText};
   use crate::rules::spoiler::SpoilerHandler;
 
@@ -155,7 +155,7 @@ pub mod comment_parser {
       &self,
       post_raw: &PostRaw,
       element: &Element,
-      out_text_parts: &mut Vec<String>,
+      out_text_parts: &mut Vec<TextPart>,
       out_spannables: &mut Vec<Spannable>
     ) -> bool {
       let element_name = element.name.as_str();
@@ -163,7 +163,7 @@ pub mod comment_parser {
 
       let rules = match rules_maybe {
         None => {
-          out_text_parts.push(element.collect_text());
+          out_text_parts.push(TextPart::new(element.collect_text()));
           return true;
         },
         Some(_) => rules_maybe.unwrap()
@@ -195,7 +195,7 @@ pub mod comment_parser {
       post_raw: &PostRaw,
       element: &Element,
       prev_out_text_parts_index: usize,
-      out_text_parts: &mut Vec<String>,
+      out_text_parts: &mut Vec<TextPart>,
       prev_out_spannables_index: usize,
       out_spannables: &mut Vec<Spannable>
     ) {
@@ -204,7 +204,7 @@ pub mod comment_parser {
 
       let rules = match rules_maybe {
         None => {
-          out_text_parts.push(element.collect_text());
+          out_text_parts.push(TextPart::new(element.collect_text()));
           return;
         },
         Some(_) => rules_maybe.unwrap()

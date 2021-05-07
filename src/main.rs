@@ -4,17 +4,11 @@ use std::collections::HashSet;
 use new_post_parser_lib::{ThreadRaw, PostRaw, set_mut, PostParserContext, PostParser};
 
 fn main() {
-  let post_comment_raw = "<span class=\"quote\">&gt;Read the sticky: <a href=\"/g/thread/76759434#p76759434\" \
-    class=\"quotelink\">&gt;&gt;76759434</a></span><br><br><span class=\"quote\">&gt;GNU/Linux questions </span>\
-    <a href=\"//boards.4channel.org/g/catalog#s=fglt\" class=\"quotelink\">&gt;&gt;&gt;/g/fglt</a><br><br>\
-    <span class=\"quote\">&gt;Windows questions </span><a href=\"//boards.4channel.org/g/catalog#s=fwt\" class=\"quotelink\">&gt;&gt;&gt;/g/fwt</a>\
-    <br><br><span class=\"quote\">&gt;PC building? </span><a href=\"//boards.4channel.org/g/catalog#s=pcbg\" class=\"quotelink\">&gt;&gt;&gt;/g/pcbg</a>\
-    <br><br><span class=\"quote\">&gt;Programming questions </span><a href=\"//boards.4channel.org/g/catalog#s=dpt\" class=\"quotelink\">&gt;&gt;&gt;/g/dpt</a>\
-    <br><br><span class=\"quote\">&gt;Good, cheap, laptops </span><a href=\"//boards.4channel.org/g/catalog#s=tpg\" class=\"quotelink\">&gt;&gt;&gt;/g/tpg</a><br>\
-    <br><span class=\"quote\">&gt;Cheap electronics </span><a href=\"//boards.4channel.org/g/catalog#s=csg\" class=\"quotelink\">&gt;&gt;&gt;/g/csg</a><br>\
-    <br><span class=\"quote\">&gt;Server questions </span><a href=\"//boards.4channel.org/g/catalog#s=hsg\" class=\"quotelink\">&gt;&gt;&gt;/g/hsg</a><br>\
-    <br><span class=\"quote\">&gt;Buying headphones </span><a href=\"//boards.4channel.org/g/catalog#s=hpg\" class=\"quotelink\">&gt;&gt;&gt;/g/hpg</a><br>\
-    <br>How to find/activate any version of Windows?<br>https://rentry.org/installwindows<br><br>Previous Thread <a href=\"/g/thread/81404563#p81404563\" class=\"quotelink\">&gt;&gt;81404563</a>";
+  let post_comment_raw = "<span class=\"quote\">&gt;Cinco de Mayo (pronounced [ˈsiŋko̞ ðe̞ ˈma̠ʝo̞] in Mexico, Spanish for &quot;Fifth of May&quot;) \
+    is an annual celebration held on May 5. The date is observed to commemorate the Mexican Army&#039;s victory over the French Empire at the Battle of Puebla, \
+    on May 5, 1862, under the leadership of General Ignacio Zaragoza.[1][2] The victory of the smaller Mexican force against a larger French force was \
+    a boost to morale for the Mexicans. Zaragoza died months after the battle due to illness. A year after the battle, a larger French force defeated the \
+    Mexican army at the Second Battle of Puebla, and Mexico City soon fell to the invaders.</span><br>what?";
 
   let thread_raw = ThreadRaw {
     posts: vec![

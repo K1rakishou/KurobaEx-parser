@@ -34,6 +34,23 @@ pub mod util {
 }
 
 #[derive(Debug)]
+pub struct TextPart {
+  text: String,
+  characters_count: usize
+}
+
+impl TextPart {
+  fn new(text: String) -> TextPart {
+    let characters_count = text.chars().count();
+
+    return TextPart {
+      text,
+      characters_count
+    };
+  }
+}
+
+#[derive(Debug)]
 pub struct PostRaw {
   pub post_id: u64,
   pub post_sub_id: u64,

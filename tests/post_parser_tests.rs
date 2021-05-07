@@ -407,6 +407,35 @@ https://www.youtube.com/watch?v=57tu8AtKf9E";
     run_test(81425984, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
+  #[test]
+  fn post_parser_test_incorrectly_parsed_span_length_case() {
+    let post_comment_raw = "<span class=\"quote\">&gt;Cinco de Mayo (pronounced [ˈsiŋko̞ ðe̞ ˈma̠ʝo̞] in Mexico, Spanish for &quot;Fifth of May&quot;) \
+    is an annual celebration held on May 5. The date is observed to commemorate the Mexican Army&#039;s victory over the French Empire at the Battle of Puebla, \
+    on May 5, 1862, under the leadership of General Ignacio Zaragoza.[1][2] The victory of the smaller Mexican force against a larger French force was \
+    a boost to morale for the Mexicans. Zaragoza died months after the battle due to illness. A year after the battle, a larger French force defeated the \
+    Mexican army at the Second Battle of Puebla, and Mexico City soon fell to the invaders.</span><br>what?";
+
+    let expected_parsed_comment = ">Cinco de Mayo (pronounced [ˈsiŋko̞ ðe̞ ˈma̠ʝo̞] in Mexico, Spanish for \"Fifth of May\") \
+    is an annual celebration held on May 5. The date is observed to commemorate the Mexican Army's victory over the French Empire \
+    at the Battle of Puebla, on May 5, 1862, under the leadership of General Ignacio Zaragoza.[1][2] The victory of the smaller \
+    Mexican force against a larger French force was a boost to morale for the Mexicans. Zaragoza died months after the battle due \
+    to illness. A year after the battle, a larger French force defeated the Mexican army at the Second Battle of Puebla, and Mexico \
+    City soon fell to the invaders.
+what?";
+
+    let expected_spannables = vec![
+      Spannable { start: 0, len: 623, spannable_data: SpannableData::GreenText }
+    ];
+
+    let post_parser_context = create_post_parser_context(
+      1235,
+      set_mut!(),
+      set_mut!()
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
   // TODO: BoardLink
   // TODO: SearchLink
 

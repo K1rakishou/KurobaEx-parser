@@ -1,5 +1,5 @@
 use crate::rules::rule_handler::{RuleHandler, RuleHandlerPostHandleMeta};
-use crate::{PostRaw, PostParserContext, Element, Spannable, PostLink, SpannableData};
+use crate::{PostRaw, PostParserContext, Element, Spannable, PostLink, SpannableData, TextPart};
 use crate::util::helpers::SumBy;
 use crate::html_parser::node::Node;
 use crate::rules::anchor::handle_single_post_quote;
@@ -15,7 +15,7 @@ impl RuleHandler for SpanHandler {
     post_raw: &PostRaw,
     post_parser_context: &PostParserContext,
     element: &Element,
-    out_text_parts: &mut Vec<String>,
+    out_text_parts: &mut Vec<TextPart>,
     out_spannables: &mut Vec<Spannable>
   ) -> bool {
     if element.has_class("deadlink") {
@@ -32,7 +32,7 @@ impl RuleHandler for SpanHandler {
     _: &PostParserContext,
     element: &Element,
     prev_out_text_parts_index: usize,
-    out_text_parts: &mut Vec<String>,
+    out_text_parts: &mut Vec<TextPart>,
     _: usize,
     out_spannables: &mut Vec<Spannable>
   ) {
@@ -72,7 +72,7 @@ impl SpanHandler {
     post_raw: &PostRaw,
     post_parser_context: &PostParserContext,
     element: &Element,
-    out_text_parts: &mut Vec<String>,
+    out_text_parts: &mut Vec<TextPart>,
     out_spannables: &mut Vec<Spannable>
   ) -> bool {
     if element.children.len() > 1 {
@@ -110,7 +110,9 @@ impl SpanHandler {
         PostLink::Dead { post_no: quote_value }
       };
 
-      let total_text_length = out_text_parts.iter().sum_by(&|string| string.len() as i32) as usize;
+      let total_text_length = out_text_parts
+        .iter()
+        .sum_by(&|string| string.characters_count as i32) as usize;
 
       handle_single_post_quote(
         post_raw,
@@ -132,7 +134,7 @@ impl SpanHandler {
   fn handle_quote_class(
     &self,
     prev_out_text_parts_index: usize,
-    out_text_parts: &mut Vec<String>,
+    out_text_parts: &mut Vec<TextPart>,
     out_spannables: &mut Vec<Spannable>
   ) {
     let start = (self as &dyn RuleHandler).get_out_text_parts_diff_len(

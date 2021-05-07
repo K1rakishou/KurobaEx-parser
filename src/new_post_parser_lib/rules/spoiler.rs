@@ -1,5 +1,5 @@
 use crate::rules::rule_handler::RuleHandler;
-use crate::{PostRaw, PostParserContext, Element, Spannable, SpannableData};
+use crate::{PostRaw, PostParserContext, Element, Spannable, SpannableData, TextPart};
 use crate::util::helpers::SumBy;
 
 const TAG: &str = "SpoilerHandler";
@@ -19,7 +19,7 @@ impl RuleHandler for SpoilerHandler {
     _: &PostRaw,
     _: &PostParserContext,
     _: &Element,
-    _: &mut Vec<String>,
+    _: &mut Vec<TextPart>,
     _: &mut Vec<Spannable>
   ) -> bool {
     // We want to process <s> tag after it's children are processed since we need to know their
@@ -33,7 +33,7 @@ impl RuleHandler for SpoilerHandler {
     _: &PostParserContext,
     _: &Element,
     prev_out_text_parts_index: usize,
-    out_text_parts: &mut Vec<String>,
+    out_text_parts: &mut Vec<TextPart>,
     _: usize,
     out_spannables: &mut Vec<Spannable>
   ) {
@@ -52,11 +52,11 @@ impl RuleHandler for SpoilerHandler {
 
     let start = out_text_parts[0..prev_out_text_parts_index]
       .iter()
-      .sum_by(&|string| string.len() as i32);
+      .sum_by(&|string| string.characters_count as i32);
 
     let len = out_text_parts[prev_out_text_parts_index..]
       .iter()
-      .sum_by(&|string| string.len() as i32);
+      .sum_by(&|string| string.characters_count as i32);
 
     let spannable = Spannable {
       start: start as usize,

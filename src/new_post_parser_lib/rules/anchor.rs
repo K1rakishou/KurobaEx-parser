@@ -2,7 +2,7 @@ use crate::rules::rule_handler::RuleHandler;
 use crate::html_parser::node::Node;
 use crate::parsing_error::ParsingError;
 use regex::Regex;
-use crate::{PostRaw, PostParserContext, Element, Spannable, PostLink, SpannableData};
+use crate::{PostRaw, PostParserContext, Element, Spannable, PostLink, SpannableData, TextPart};
 use crate::util::helpers::SumBy;
 
 const TAG: &str = "AnchorRuleHandler";
@@ -28,7 +28,7 @@ impl RuleHandler for AnchorRuleHandler {
     post_raw: &PostRaw,
     post_parser_context: &PostParserContext,
     element: &Element,
-    out_text_parts: &mut Vec<String>,
+    out_text_parts: &mut Vec<TextPart>,
     out_spannables: &mut Vec<Spannable>
   ) -> bool {
     if element.children.len() != 1 {
@@ -55,7 +55,7 @@ impl RuleHandler for AnchorRuleHandler {
     _: &PostParserContext,
     _: &Element,
     _: usize,
-    _: &mut Vec<String>,
+    _: &mut Vec<TextPart>,
     _: usize,
     _: &mut Vec<Spannable>
   ) {
@@ -68,7 +68,7 @@ fn handle_href_attr<'a>(
   element: &Element,
   post_raw: &PostRaw,
   post_parser_context: &PostParserContext,
-  out_text_parts: &mut Vec<String>,
+  out_text_parts: &mut Vec<TextPart>,
   out_spannables: &mut Vec<Spannable>,
   text: &String
 ) {
@@ -87,7 +87,7 @@ fn handle_href_attr<'a>(
     }
     Ok(post_link) => {
       let unescaped_text = String::from(html_escape::decode_html_entities(text));
-      let total_text_length = out_text_parts.iter().sum_by(&|string| string.len() as i32) as usize;
+      let total_text_length = out_text_parts.iter().sum_by(&|string| string.characters_count as i32) as usize;
 
       match &post_link {
         PostLink::Quote { .. } | PostLink::Dead { .. } => {
@@ -116,7 +116,7 @@ fn handle_href_attr<'a>(
           }
 
           // TODO: add link suffixes (like >>76759434 →)
-          out_text_parts.push(String::from(unescaped_text));
+          out_text_parts.push(TextPart::new(unescaped_text));
         }
       }
     }
@@ -126,7 +126,7 @@ fn handle_href_attr<'a>(
 pub fn handle_single_post_quote(
   post_raw: &PostRaw,
   post_parser_context: &PostParserContext,
-  out_text_parts: &mut Vec<String>,
+  out_text_parts: &mut Vec<TextPart>,
   out_spannables: &mut Vec<Spannable>,
   post_link: PostLink,
   unescaped_text: &String,
@@ -182,7 +182,7 @@ pub fn handle_single_post_quote(
     out_spannables.push(spannable);
   }
 
-  out_text_parts.push(quote_text_result);
+  out_text_parts.push(TextPart::new(quote_text_result));
 }
 
 fn link_raw_to_post_link(

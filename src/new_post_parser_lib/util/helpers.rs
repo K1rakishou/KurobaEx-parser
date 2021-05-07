@@ -29,3 +29,32 @@ impl<T> LastIndex<T> for Iter<'_, T> {
     return Option::Some(self.len() - 1);
   }
 }
+
+pub trait MapJoin<T> {
+  fn map_join(&self, mapper: &dyn Fn(&T) -> &str) -> String;
+  fn map_join_cap(&self, capacity: usize, separator: &str, mapper: &dyn Fn(&T) -> &str) -> String;
+}
+
+impl<T> MapJoin<T> for Iter<'_, T> {
+  fn map_join(&self, mapper: &dyn Fn(&T) -> &str) -> String {
+    return self.map_join_cap(16, "", mapper);
+  }
+
+  fn map_join_cap(&self, capacity: usize, separator: &str, mapper: &dyn Fn(&T) -> &str) -> String {
+    let mut result_string =  String::with_capacity(capacity);
+    let mut index = 0;
+    let count = self.len();
+
+    for element in self.as_slice() {
+      result_string.push_str(mapper(element));
+
+      if index < count {
+        result_string.push_str(separator);
+      }
+
+      index += 1;
+    }
+
+    return result_string;
+  }
+}
