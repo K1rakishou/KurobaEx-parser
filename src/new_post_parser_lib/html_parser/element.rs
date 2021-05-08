@@ -14,6 +14,10 @@ impl Element {
     return class_attr_maybe.unwrap().to_lowercase() == class_name.to_lowercase();
   }
 
+  pub fn get_attr_value(&self, attr_name: &str) -> Option<&String> {
+    return self.attributes.get(attr_name);
+  }
+
   pub fn collect_text(&self) -> String {
     let mut output = String::with_capacity(16);
 

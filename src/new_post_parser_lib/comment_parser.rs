@@ -12,6 +12,9 @@ pub mod comment_parser {
   use crate::rules::table_row::TableRowHandler;
   use crate::rules::bold::BoldHandler;
   use crate::rules::abbr::AbbrHandler;
+  use std::rc::Rc;
+  use crate::rules::style::StyleHandler;
+  use linked_hash_map::LinkedHashMap;
 
   const TAG: &str = "CommentParser";
 
@@ -54,6 +57,24 @@ pub mod comment_parser {
         }
         SpannableData::BoldText => {
           write!(f, "BoldText()")
+        }
+        SpannableData::TextForegroundColorRaw { color_hex: raw_color } => {
+          write!(f, "TextForegroundColorRaw(raw_color: {})", raw_color)
+        }
+        SpannableData::TextBackgroundColorRaw { color_hex: raw_color } => {
+          write!(f, "TextBackgroundColorRaw(raw_color: {})", raw_color)
+        }
+        SpannableData::TextForegroundColorId { color_id } => {
+          write!(f, "TextForegroundColorId(color_id: {})", color_id)
+        }
+        SpannableData::TextBackgroundColorId { color_id } => {
+          write!(f, "TextBackgroundColorId(color_id: {})", color_id)
+        }
+        SpannableData::FontSize { size } => {
+          write!(f, "FontSize(size: {})", size)
+        }
+        SpannableData::FontWeight { weight } => {
+          write!(f, "FontWeight(weight: {})", weight)
         }
       }
     }
@@ -102,7 +123,7 @@ pub mod comment_parser {
   }
 
   impl ParsingRule {
-    pub fn new(tag: &str, req_attributes: HashSet<String>, handler: Box<dyn RuleHandler>) -> ParsingRule {
+    pub fn new(tag: &str, req_attributes: HashSet<String>, handler: Rc<dyn RuleHandler>) -> ParsingRule {
       ParsingRule {
         tag: String::from(tag),
         req_attributes,
@@ -119,8 +140,12 @@ pub mod comment_parser {
         return true
       }
 
-      for req_class in &self.req_attributes {
-        if element.has_class(&req_class) {
+      for req_attribute in &self.req_attributes {
+        if element.get_attr_value(req_attribute).is_some() {
+          return true;
+        }
+
+        if element.has_class(&req_attribute) {
           return true;
         }
       }
@@ -135,12 +160,12 @@ pub mod comment_parser {
     pub fn new(post_parser_context: &PostParserContext) -> CommentParser {
       return CommentParser {
         post_parser_context,
-        matching_rules: HashMap::new(),
+        matching_rules: LinkedHashMap::new(),
         replacement_rules: HashMap::new()
       }
     }
 
-    fn add_matching_rule(&mut self, rule: Box<ParsingRule>) {
+    fn add_matching_rule(&mut self, rule: Rc<ParsingRule>) {
       if !self.matching_rules.contains_key(&rule.tag) {
         self.matching_rules.insert(String::from(&rule.tag), Vec::new());
       }
@@ -157,14 +182,34 @@ pub mod comment_parser {
     }
 
     pub fn add_default_matching_rules(&mut self) {
-      self.add_matching_rule(Box::new(ParsingRule::new("a", set_immut!(), Box::new(AnchorRuleHandler::new()))));
-      self.add_matching_rule(Box::new(ParsingRule::new("br", set_immut!(), Box::new(LineBreakRuleHandler::new()))));
-      self.add_matching_rule(Box::new(ParsingRule::new("span", set_immut!(), Box::new(SpanHandler::new()))));
-      self.add_matching_rule(Box::new(ParsingRule::new("s", set_immut!(), Box::new(SpoilerHandler::new()))));
-      self.add_matching_rule(Box::new(ParsingRule::new("tr", set_immut!(), Box::new(TableRowHandler::new()))));
-      self.add_matching_rule(Box::new(ParsingRule::new("b", set_immut!(), Box::new(BoldHandler::new()))));
-      self.add_matching_rule(Box::new(ParsingRule::new("strong", set_immut!(), Box::new(BoldHandler::new()))));
-      self.add_matching_rule(Box::new(ParsingRule::new("span", set_mut!("abbr".to_string()), Box::new(AbbrHandler::new()))));
+      // Wildcard rules go first
+      self.add_matching_rule(Rc::new(ParsingRule::new("*", set_mut!("style".to_string()), Rc::new(StyleHandler::new()))));
+
+      // Then go rules that require specific attributes
+      self.add_matching_rule(Rc::new(ParsingRule::new("span", set_mut!("abbr".to_string()), Rc::new(AbbrHandler::new()))));
+
+      // Then go general rules for the whole tag
+      self.add_matching_rule(Rc::new(ParsingRule::new("span", set_immut!(), Rc::new(SpanHandler::new()))));
+      self.add_matching_rule(Rc::new(ParsingRule::new("a", set_immut!(), Rc::new(AnchorRuleHandler::new()))));
+      self.add_matching_rule(Rc::new(ParsingRule::new("br", set_immut!(), Rc::new(LineBreakRuleHandler::new()))));
+      self.add_matching_rule(Rc::new(ParsingRule::new("s", set_immut!(), Rc::new(SpoilerHandler::new()))));
+      self.add_matching_rule(Rc::new(ParsingRule::new("tr", set_immut!(), Rc::new(TableRowHandler::new()))));
+      self.add_matching_rule(Rc::new(ParsingRule::new("b", set_immut!(), Rc::new(BoldHandler::new()))));
+      self.add_matching_rule(Rc::new(ParsingRule::new("strong", set_immut!(), Rc::new(BoldHandler::new()))));
+    }
+
+    pub fn get_matching_rules(&self, element_name: &str) -> Option<Vec<Rc<ParsingRule>>> {
+      let mut all_rules: Vec<Rc<ParsingRule>> = Vec::with_capacity(16);
+
+      for (_, rules) in &self.matching_rules {
+        for rule in rules {
+          if rule.tag == "*" || rule.tag == element_name {
+            all_rules.push(rule.clone());
+          }
+        }
+      }
+
+      return Option::Some(all_rules.to_vec());
     }
 
     /// returns true if we managed to parse this node fully and don't need to go deeper for child nodes.
@@ -176,7 +221,7 @@ pub mod comment_parser {
       out_spannables: &mut Vec<Spannable>
     ) -> bool {
       let element_name = element.name.as_str();
-      let rules_maybe = self.matching_rules.get(element_name);
+      let rules_maybe = self.get_matching_rules(element_name);
 
       let rules = match rules_maybe {
         None => return false,
@@ -186,15 +231,11 @@ pub mod comment_parser {
       for index in 0..2 {
         let high_priority = index == 0;
 
-        for rule in rules {
+        for rule in &rules {
           if rule.high_priority() == high_priority && rule.applies(element) {
-            return rule.handler.pre_handle(
-              post_raw,
-              self.post_parser_context,
-              element,
-              out_text_parts,
-              out_spannables
-            )
+            if rule.handler.pre_handle(post_raw, self.post_parser_context, element, out_text_parts, out_spannables) {
+              return true
+            }
           }
         }
       }
@@ -214,7 +255,7 @@ pub mod comment_parser {
       out_spannables: &mut Vec<Spannable>
     ) {
       let element_name = element.name.as_str();
-      let rules_maybe = self.matching_rules.get(element_name);
+      let rules_maybe = self.get_matching_rules(element_name);
 
       let rules = match rules_maybe {
         None => return,
@@ -224,9 +265,9 @@ pub mod comment_parser {
       for index in 0..2 {
         let high_priority = index == 0;
 
-        for rule in rules {
+        for rule in &rules {
           if rule.high_priority() == high_priority && rule.applies(element) {
-            return rule.handler.post_handle(
+            rule.handler.post_handle(
               post_raw,
               self.post_parser_context,
               element,

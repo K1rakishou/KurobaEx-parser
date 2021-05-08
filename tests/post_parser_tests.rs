@@ -568,6 +568,7 @@ what?";
     let expected_parsed_comment = "More of her? \n\n(USER WAS BANNED FOR THIS POST)";
 
     let expected_spannables = vec![
+      Spannable { start: 14, len: 32, spannable_data: SpannableData::TextForegroundColorRaw { color_hex: "#FF0000".to_string() } },
       Spannable { start: 14, len: 32, spannable_data: SpannableData::BoldText },
     ];
 
@@ -579,6 +580,8 @@ what?";
 
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
+
+  // TODO: parse style in other tags like <b>
 
   // TODO: BoardLink
   // TODO: Unicode text (Russian/some other?)

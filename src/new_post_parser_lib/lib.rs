@@ -8,6 +8,8 @@ use std::collections::{HashSet, HashMap};
 use linked_hash_map::LinkedHashMap;
 use crate::html_parser::node::Node;
 use crate::rules::rule_handler::RuleHandler;
+use core::fmt;
+use std::rc::Rc;
 
 mod post_parser;
 mod comment_parser;
@@ -22,6 +24,7 @@ mod rules {
   pub mod table_row;
   pub mod bold;
   pub mod abbr;
+  pub mod style;
 }
 
 pub mod html_parser {
@@ -33,6 +36,8 @@ pub mod html_parser {
 pub mod util {
   pub mod macroses;
   pub mod helpers;
+  pub mod color_decoder;
+  pub mod style_tag_value_decoder;
 }
 
 #[derive(Debug)]
@@ -88,7 +93,7 @@ pub struct PostParser<'a> {
 
 pub struct CommentParser<'a> {
   post_parser_context: &'a PostParserContext,
-  matching_rules: HashMap<String, Vec<Box<ParsingRule>>>,
+  matching_rules: LinkedHashMap<String, Vec<Rc<ParsingRule>>>,
   /// [Key] what pattern in the comment text needs to be replaced with [Value]
   replacement_rules: HashMap<String, String>
 }
@@ -96,7 +101,7 @@ pub struct CommentParser<'a> {
 pub struct ParsingRule {
   tag: String,
   req_attributes: HashSet<String>,
-  handler: Box<dyn RuleHandler>
+  handler: Rc<dyn RuleHandler>
 }
 
 pub struct ParsedPost {
@@ -121,15 +126,69 @@ pub struct Spannable {
   pub spannable_data: SpannableData
 }
 
-#[derive(Debug, PartialEq)]
+/// When changing this DO NOT FORGET to also change com.github.k1rakishou.core_themes.ChanThemeColorId !!!
+#[derive(Debug, PartialEq, Clone)]
+pub enum ChanThemeColorId {
+  PostSubjectColor = 0,
+  PostNameColor = 1,
+  AccentColor = 2,
+  PostInlineQuoteColor = 3,
+  PostQuoteColor = 4,
+  BackColorSecondary = 5,
+  PostLinkColor = 6,
+  TextColorPrimary = 7,
+}
+
+impl fmt::Display for ChanThemeColorId {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    return match self {
+      ChanThemeColorId::PostSubjectColor => {
+        write!(f, "ChanThemeColorId::PostSubjectColor")
+      }
+      ChanThemeColorId::PostNameColor => {
+        write!(f, "ChanThemeColorId::PostNameColor")
+      }
+      ChanThemeColorId::AccentColor => {
+        write!(f, "ChanThemeColorId::AccentColor")
+      }
+      ChanThemeColorId::PostInlineQuoteColor => {
+        write!(f, "ChanThemeColorId::PostInlineQuoteColor")
+      }
+      ChanThemeColorId::PostQuoteColor => {
+        write!(f, "ChanThemeColorId::PostQuoteColor")
+      }
+      ChanThemeColorId::BackColorSecondary => {
+        write!(f, "ChanThemeColorId::BackColorSecondary")
+      }
+      ChanThemeColorId::PostLinkColor => {
+        write!(f, "ChanThemeColorId::PostLinkColor")
+      }
+      ChanThemeColorId::TextColorPrimary => {
+        write!(f, "ChanThemeColorId::TextColorPrimary")
+      }
+    }
+  }
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum SpannableData {
   Link(PostLink),
   Spoiler,
   GreenText,
-  BoldText
+  BoldText,
+  // font-size:22px;font-size:150%;
+  FontSize { size: String },
+  // TODO: FontWeight is not implemented yet
+  // font-weight:600;font-weight:bold
+  FontWeight { weight: String },
+  // color:#fd4d32
+  TextForegroundColorRaw { color_hex: String },
+  TextBackgroundColorRaw { color_hex: String },
+  TextForegroundColorId { color_id: ChanThemeColorId },
+  TextBackgroundColorId { color_id: ChanThemeColorId }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum PostLink {
   Quote { post_no: u64 },
   Dead { post_no: u64 },

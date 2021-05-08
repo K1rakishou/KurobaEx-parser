@@ -4,8 +4,9 @@ use std::collections::HashSet;
 use new_post_parser_lib::{ThreadRaw, PostRaw, set_mut, PostParserContext, PostParser};
 
 fn main() {
-  let post_comment_raw = "<b></b>";
-
+  let post_comment_raw = "<span style=\"font-weight:600;font-size:150%;line-height:1.5;\">Begging or asking for &#039;free \
+  money&#039;/crypto is strictly forbidden. Encouraging beggars, or posting any kind of &#039;free money&#039; \
+  offer is also strictly forbidden.</span>";
 
   let thread_raw = ThreadRaw {
     posts: vec![
