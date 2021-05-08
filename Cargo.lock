@@ -20,7 +20,7 @@ dependencies = [
 
 [[package]]
 name = "kuroba_ex_new_post_parser"
-version = "0.1.12"
+version = "0.1.14"
 dependencies = [
  "html-escape",
  "lazy_static",

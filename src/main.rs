@@ -4,11 +4,8 @@ use std::collections::HashSet;
 use new_post_parser_lib::{ThreadRaw, PostRaw, set_mut, PostParserContext, PostParser};
 
 fn main() {
-  let post_comment_raw = "<span class=\"quote\">&gt;Cinco de Mayo (pronounced [ˈsiŋko̞ ðe̞ ˈma̠ʝo̞] in Mexico, Spanish for &quot;Fifth of May&quot;) \
-    is an annual celebration held on May 5. The date is observed to commemorate the Mexican Army&#039;s victory over the French Empire at the Battle of Puebla, \
-    on May 5, 1862, under the leadership of General Ignacio Zaragoza.[1][2] The victory of the smaller Mexican force against a larger French force was \
-    a boost to morale for the Mexicans. Zaragoza died months after the battle due to illness. A year after the battle, a larger French force defeated the \
-    Mexican army at the Second Battle of Puebla, and Mexico City soon fell to the invaders.</span><br>what?";
+  let post_comment_raw = "<a href=\"#p221656514\" class=\"quotelink\">&gt;&gt;221656514</a>\
+    <br>Be seeing you in the next rotation anons!<br>https://s1.desu-usergeneratedconten<wbr>t.xyz/a/image/1614/51/1614513969521<wbr>.png";
 
   let thread_raw = ThreadRaw {
     posts: vec![

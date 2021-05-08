@@ -16,7 +16,6 @@ mod parsing_error;
 mod rules {
   pub mod anchor;
   pub mod line_break;
-  pub mod word_break;
   pub mod rule_handler;
   pub mod span;
   pub mod spoiler;
@@ -86,7 +85,9 @@ pub struct PostParser<'a> {
 
 pub struct CommentParser<'a> {
   post_parser_context: &'a PostParserContext,
-  rules: HashMap<String, Vec<Box<ParsingRule>>>
+  matching_rules: HashMap<String, Vec<Box<ParsingRule>>>,
+  /// [Key] what pattern in the comment text needs to be replaced with [Value]
+  replacement_rules: HashMap<String, String>
 }
 
 pub struct ParsingRule {

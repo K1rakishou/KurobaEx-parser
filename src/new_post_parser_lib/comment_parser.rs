@@ -5,7 +5,6 @@ pub mod comment_parser {
   use crate::rules::span::SpanHandler;
   use crate::rules::rule_handler::RuleHandler;
   use crate::rules::line_break::LineBreakRuleHandler;
-  use crate::rules::word_break::WordBreakRuleHandler;
   use std::fmt;
   use crate::{set_immut, TextPart};
   use crate::{PostRaw, PostParserContext, Element, ParsingRule, CommentParser, PostLink, SpannableData, Spannable, ParsedSpannableText};
@@ -130,24 +129,32 @@ pub mod comment_parser {
     pub fn new(post_parser_context: &PostParserContext) -> CommentParser {
       return CommentParser {
         post_parser_context,
-        rules: HashMap::new()
+        matching_rules: HashMap::new(),
+        replacement_rules: HashMap::new()
       }
     }
 
-    fn add_rule(&mut self, rule: Box<ParsingRule>) {
-      if !self.rules.contains_key(&rule.tag) {
-        self.rules.insert(String::from(&rule.tag), Vec::new());
+    fn add_matching_rule(&mut self, rule: Box<ParsingRule>) {
+      if !self.matching_rules.contains_key(&rule.tag) {
+        self.matching_rules.insert(String::from(&rule.tag), Vec::new());
       }
 
-      self.rules.get_mut(&rule.tag).unwrap().push(rule);
+      self.matching_rules.get_mut(&rule.tag).unwrap().push(rule);
     }
 
-    pub fn add_default_rules(&mut self) {
-      self.add_rule(Box::new(ParsingRule::new("a", set_immut!(), Box::new(AnchorRuleHandler::new()))));
-      self.add_rule(Box::new(ParsingRule::new("br", set_immut!(), Box::new(LineBreakRuleHandler::new()))));
-      self.add_rule(Box::new(ParsingRule::new("wbr", set_immut!(), Box::new(WordBreakRuleHandler::new()))));
-      self.add_rule(Box::new(ParsingRule::new("span", set_immut!(), Box::new(SpanHandler::new()))));
-      self.add_rule(Box::new(ParsingRule::new("s", set_immut!(), Box::new(SpoilerHandler::new()))));
+    pub fn add_replacement_rule(&mut self, pattern: &str, value: &str) {
+      let result = self.replacement_rules.insert(String::from(pattern), String::from(value));
+
+      if result.is_some() {
+        panic!("add_replacement() pattern {} with value {} was already added! Old value: {}", pattern, value, result.unwrap());
+      }
+    }
+
+    pub fn add_default_matching_rules(&mut self) {
+      self.add_matching_rule(Box::new(ParsingRule::new("a", set_immut!(), Box::new(AnchorRuleHandler::new()))));
+      self.add_matching_rule(Box::new(ParsingRule::new("br", set_immut!(), Box::new(LineBreakRuleHandler::new()))));
+      self.add_matching_rule(Box::new(ParsingRule::new("span", set_immut!(), Box::new(SpanHandler::new()))));
+      self.add_matching_rule(Box::new(ParsingRule::new("s", set_immut!(), Box::new(SpoilerHandler::new()))));
     }
 
     /// returns true if we managed to parse this node fully and don't need to go deeper for child nodes.
@@ -159,7 +166,7 @@ pub mod comment_parser {
       out_spannables: &mut Vec<Spannable>
     ) -> bool {
       let element_name = element.name.as_str();
-      let rules_maybe = self.rules.get(element_name);
+      let rules_maybe = self.matching_rules.get(element_name);
 
       let rules = match rules_maybe {
         None => {
@@ -200,7 +207,7 @@ pub mod comment_parser {
       out_spannables: &mut Vec<Spannable>
     ) {
       let element_name = element.name.as_str();
-      let rules_maybe = self.rules.get(element_name);
+      let rules_maybe = self.matching_rules.get(element_name);
 
       let rules = match rules_maybe {
         None => {

@@ -72,7 +72,9 @@ pub mod post_parser {
   impl PostParser<'_> {
     pub fn new(post_parser_context: &PostParserContext) -> PostParser {
       let mut comment_parser = CommentParser::new(post_parser_context);
-      comment_parser.add_default_rules();
+
+      comment_parser.add_default_matching_rules();
+      comment_parser.add_replacement_rule("<wbr>", "");
 
       return PostParser {
         post_parser_context,
@@ -81,13 +83,13 @@ pub mod post_parser {
     }
 
     pub fn is_element_supported(&self, tag_name: &str, attr_name: &str) -> bool {
-      let rules = &self.comment_parser.rules;
+      let rules = &self.comment_parser.matching_rules;
 
       if !rules.contains_key(tag_name) {
         return false;
       }
 
-      let tag_rules = self.comment_parser.rules.get(tag_name).unwrap();
+      let tag_rules = self.comment_parser.matching_rules.get(tag_name).unwrap();
 
       for tag_rule in tag_rules {
         if !tag_rule.req_attributes.contains(attr_name) {
@@ -119,14 +121,14 @@ pub mod post_parser {
     }
 
     pub fn parse_comment(&self, post_raw: &PostRaw) -> ParsedSpannableText {
-      let comment_raw = &post_raw.com;
+      let comment_raw = self.pre_process_comment(post_raw);
       if comment_raw.is_empty() {
         return ParsedSpannableText::empty();
       }
 
       let html_parser = HtmlParser::new();
 
-      let html_parsing_result = html_parser.parse(comment_raw);
+      let html_parsing_result = html_parser.parse(comment_raw.as_str());
       if html_parsing_result.is_err() {
         let parser_error_message = format!(
           "Failed to parse comment_raw html, error={:?}",
@@ -134,7 +136,7 @@ pub mod post_parser {
         );
 
         let post_comment_parsed = ParsedSpannableText::new(
-          comment_raw,
+          comment_raw.as_str(),
           Box::new(parser_error_message),
           Box::new(Vec::new())
         );
@@ -149,10 +151,25 @@ pub mod post_parser {
       let total_size = out_text_parts.iter().sum_by(&|text_part| text_part.characters_count as i32) as usize;
 
       return ParsedSpannableText::new(
-        comment_raw,
+        comment_raw.as_str(),
         Box::new(out_text_parts.iter().map_join_cap(total_size, "", &|text_part| text_part.text.as_str())),
         Box::new(out_spannables)
       );
+    }
+
+    fn pre_process_comment(&self, post_raw: &PostRaw) -> String {
+      let comment_raw = &post_raw.com;
+      if comment_raw.is_empty() {
+        return String::from("");
+      }
+
+      let mut result_comment_raw = String::from(comment_raw);
+
+      for (pattern, value) in &self.comment_parser.replacement_rules {
+        result_comment_raw = result_comment_raw.replace(pattern, &value);
+      }
+
+      return result_comment_raw;
     }
 
     fn process_element(

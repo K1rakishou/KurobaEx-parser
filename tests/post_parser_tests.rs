@@ -436,15 +436,32 @@ what?";
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
+  #[test]
+  fn post_parser_test_wbr_tag_removal_case() {
+    let post_comment_raw = "<a href=\"#p221656514\" class=\"quotelink\">&gt;&gt;221656514</a>\
+    <br>Be seeing you in the next rotation anons!<br>https://s1.desu-usergeneratedconten<wbr>t.xyz/a/image/1614/51/1614513969521<wbr>.png";
+
+    let expected_parsed_comment = ">>221656514\nBe seeing you in the next rotation anons!\nhttps://s1.desu-usergeneratedcontent.xyz/a/image/1614/51/1614513969521.png";
+
+    let expected_spannables = vec![
+      Spannable { start: 0, len: 11, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 221656514 }) },
+      Spannable { start: 54, len: 74, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://s1.desu-usergeneratedcontent.xyz/a/image/1614/51/1614513969521.png") }) },
+    ];
+
+    let post_parser_context = create_post_parser_context(
+      1235,
+      set_mut!(),
+      set_mut!(221656514u64)
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
   // TODO: BoardLink
   // TODO: SearchLink
 
   // Bunch of cross-thread (dead and alive) links
   // Breakfast Baki, Maximum Tournament-hen.<br>The only rule is no weapons. Anything else goes.<br>OP for the finals: https://www.youtube.com/watch?v=9PY<wbr>FIgOaWz0<br><br>Last time: A flashback to Yuujiro&#039;s past in Vietnam.<br>Volume 21: <span class=\"deadlink\">&gt;&gt;220319165</span><br>Volume 22: <span class=\"deadlink\">&gt;&gt;220380103</span><br>Volume 23: <span class=\"deadlink\">&gt;&gt;220441774</span><br>Volume 24: <span class=\"deadlink\">&gt;&gt;220501577</span><br>Volume 25: <span class=\"deadlink\">&gt;&gt;220559839</span><br>Volume 26: <span class=\"deadlink\">&gt;&gt;220623109</span><br>Volume 27: <span class=\"deadlink\">&gt;&gt;220684674</span><br>Volume 28: <span class=\"deadlink\">&gt;&gt;220748482</span><br>Volume 29: <span class=\"deadlink\">&gt;&gt;220805232</span><br>Volume 30: <span class=\"deadlink\">&gt;&gt;220862935</span><br>Volume 31: <span class=\"deadlink\">&gt;&gt;220924399</span><br>Volume 32: <span class=\"deadlink\">&gt;&gt;220981838</span><br>Volume 33: <span class=\"deadlink\">&gt;&gt;221038807</span><br>Volume 34: <a href=\"/a/thread/221101420#p221101420\" class=\"quotelink\">&gt;&gt;221101420</a><br>Volume 35: <a href=\"/a/thread/221160344#p221160344\" class=\"quotelink\">&gt;&gt;221160344</a><br>Volume 36: <a href=\"/a/thread/221218747#p221218747\" class=\"quotelink\">&gt;&gt;221218747</a><br>Volume 37: <a href=\"/a/thread/221275313#p221275313\" class=\"quotelink\">&gt;&gt;221275313</a><br>Volume 38: <a href=\"/a/thread/221332969#p221332969\" class=\"quotelink\">&gt;&gt;221332969</a><br>Volume 39: <a href=\"/a/thread/221386198#p221386198\" class=\"quotelink\">&gt;&gt;221386198</a><br>Volume 40: <a href=\"/a/thread/221443978#p221443978\" class=\"quotelink\">&gt;&gt;221443978</a><br>https://archive.wakarimasen.moe/a/s<wbr>earch/subject/Storytime%3A%20Grappl<wbr>er%20Baki/
-
-  // TODO
-  // Link with <wbr> tags inside. We are not handling it correctly.
-  // <a href="#p221656514" class="quotelink">&gt;&gt;221656514</a><br>Be seeing you in the next rotation anons!<br>https://s1.desu-usergeneratedconten<wbr>t.xyz/a/image/1614/51/1614513969521<wbr>.png
 
   // TODO: Unicode text (Japasene/Russian/some other?)
   // Japanese text with quote
