@@ -4,8 +4,8 @@ use std::collections::HashSet;
 use new_post_parser_lib::{ThreadRaw, PostRaw, set_mut, PostParserContext, PostParser};
 
 fn main() {
-  let post_comment_raw = "<a href=\"#p221656514\" class=\"quotelink\">&gt;&gt;221656514</a>\
-    <br>Be seeing you in the next rotation anons!<br>https://s1.desu-usergeneratedconten<wbr>t.xyz/a/image/1614/51/1614513969521<wbr>.png";
+  let post_comment_raw = "<b></b>";
+
 
   let thread_raw = ThreadRaw {
     posts: vec![

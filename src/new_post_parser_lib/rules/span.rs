@@ -39,13 +39,6 @@ impl RuleHandler for SpanHandler {
     if prev_out_text_parts_index == out_text_parts.len() {
       // Nothing was added since handle() call. This probably means that the current tag has an empty
       // body.
-      eprintln!(
-        "{} prev_out_text_parts_index ({}) == out_text_parts.len() ({})",
-        TAG,
-        prev_out_text_parts_index,
-        out_text_parts.len()
-      );
-
       return;
     }
 

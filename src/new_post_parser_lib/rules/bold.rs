@@ -1,18 +1,18 @@
 use crate::rules::rule_handler::RuleHandler;
-use crate::{PostRaw, PostParserContext, Element, Spannable, SpannableData, TextPart};
+use crate::{PostRaw, PostParserContext, Element, TextPart, Spannable, SpannableData};
 use crate::util::helpers::SumBy;
 
-const TAG: &str = "SpoilerHandler";
+const TAG: &str = "BoldHandler";
 
-pub struct SpoilerHandler {}
+pub struct BoldHandler {}
 
-impl SpoilerHandler {
-  pub fn new() -> SpoilerHandler {
-    return SpoilerHandler {};
+impl BoldHandler {
+  pub fn new() -> BoldHandler {
+    return BoldHandler {};
   }
 }
 
-impl RuleHandler for SpoilerHandler {
+impl RuleHandler for BoldHandler {
 
   fn pre_handle(
     &self,
@@ -22,8 +22,6 @@ impl RuleHandler for SpoilerHandler {
     _: &mut Vec<TextPart>,
     _: &mut Vec<Spannable>
   ) -> bool {
-    // We want to process <s> tag after it's children are processed since we need to know their
-    // total text size
     return false;
   }
 
@@ -54,7 +52,7 @@ impl RuleHandler for SpoilerHandler {
     let spannable = Spannable {
       start: start as usize,
       len: len as usize,
-      spannable_data: SpannableData::Spoiler
+      spannable_data: SpannableData::BoldText
     };
 
     if spannable.is_valid() {

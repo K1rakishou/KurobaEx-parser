@@ -6,9 +6,12 @@ pub mod comment_parser {
   use crate::rules::rule_handler::RuleHandler;
   use crate::rules::line_break::LineBreakRuleHandler;
   use std::fmt;
-  use crate::{set_immut, TextPart};
+  use crate::{set_immut, set_mut, TextPart};
   use crate::{PostRaw, PostParserContext, Element, ParsingRule, CommentParser, PostLink, SpannableData, Spannable, ParsedSpannableText};
   use crate::rules::spoiler::SpoilerHandler;
+  use crate::rules::table_row::TableRowHandler;
+  use crate::rules::bold::BoldHandler;
+  use crate::rules::abbr::AbbrHandler;
 
   const TAG: &str = "CommentParser";
 
@@ -48,6 +51,9 @@ pub mod comment_parser {
         }
         SpannableData::GreenText => {
           write!(f, "GreenText()")
+        }
+        SpannableData::BoldText => {
+          write!(f, "BoldText()")
         }
       }
     }
@@ -155,6 +161,10 @@ pub mod comment_parser {
       self.add_matching_rule(Box::new(ParsingRule::new("br", set_immut!(), Box::new(LineBreakRuleHandler::new()))));
       self.add_matching_rule(Box::new(ParsingRule::new("span", set_immut!(), Box::new(SpanHandler::new()))));
       self.add_matching_rule(Box::new(ParsingRule::new("s", set_immut!(), Box::new(SpoilerHandler::new()))));
+      self.add_matching_rule(Box::new(ParsingRule::new("tr", set_immut!(), Box::new(TableRowHandler::new()))));
+      self.add_matching_rule(Box::new(ParsingRule::new("b", set_immut!(), Box::new(BoldHandler::new()))));
+      self.add_matching_rule(Box::new(ParsingRule::new("strong", set_immut!(), Box::new(BoldHandler::new()))));
+      self.add_matching_rule(Box::new(ParsingRule::new("span", set_mut!("abbr".to_string()), Box::new(AbbrHandler::new()))));
     }
 
     /// returns true if we managed to parse this node fully and don't need to go deeper for child nodes.
@@ -169,10 +179,7 @@ pub mod comment_parser {
       let rules_maybe = self.matching_rules.get(element_name);
 
       let rules = match rules_maybe {
-        None => {
-          out_text_parts.push(TextPart::new(element.collect_text()));
-          return true;
-        },
+        None => return false,
         Some(_) => rules_maybe.unwrap()
       };
 
@@ -210,10 +217,7 @@ pub mod comment_parser {
       let rules_maybe = self.matching_rules.get(element_name);
 
       let rules = match rules_maybe {
-        None => {
-          out_text_parts.push(TextPart::new(element.collect_text()));
-          return;
-        },
+        None => return,
         Some(_) => rules_maybe.unwrap()
       };
 

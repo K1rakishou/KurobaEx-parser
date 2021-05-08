@@ -43,6 +43,38 @@ mod test_main {
   }
 
   #[test]
+  fn post_parser_test_empty_tag() {
+    let post_comment_raw = "<b></b>";
+    let expected_parsed_comment = "";
+
+    let expected_spannables = vec![];
+
+    let post_parser_context = create_post_parser_context(
+      1234567890,
+      set_mut!(),
+      set_mut!()
+    );
+
+    run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  #[test]
+  fn post_parser_test_empty_tag_with_text() {
+    let post_comment_raw = "Test1<b></b>Test2";
+    let expected_parsed_comment = "Test1Test2";
+
+    let expected_spannables = vec![];
+
+    let post_parser_context = create_post_parser_context(
+      1234567890,
+      set_mut!(),
+      set_mut!()
+    );
+
+    run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  #[test]
   fn post_parser_test_dead_quotes() {
     let post_comment_raw = "<a href=\"#p333520145\" class=\"quotelink\">&gt;&gt;333520145</a><br><a href=\"#p333520391\" class=\"quotelink\">&gt;&gt;333520391</a><br>\
 Feel free to tell me specifically what I&#039;m wrong about. I&#039;ll take one thing he says: that Tomoya is behaving negatively by &quot;dragging her down.&quot;";
@@ -319,23 +351,11 @@ https://www.youtube.com/watch?v=57tu8AtKf9E";
     let post_comment_raw = "<a href=\"#p81423695\" class=\"quotelink\">&gt;&gt;81423695</a><br>We have one here with sound.<br>\
     <a href=\"//boards.4channel.org/wsg/thread/3849481#p3849481\" class=\"quotelink\" style=\"\">&gt;&gt;&gt;/wsg/3849481</a>";
 
-    let expected_parsed_comment = ">>81423695\nWe have one here with sound.\n>>>/wsg/3849481";
+    let expected_parsed_comment = ">>81423695\nWe have one here with sound.\n>>>/wsg/3849481 →";
 
     let expected_spannables = vec![
-      Spannable {
-        start: 0,
-        len: 10,
-        spannable_data: SpannableData::Link(PostLink::Quote { post_no: 81423695 })
-      },
-      Spannable {
-        start: 40,
-        len: 15,
-        spannable_data: SpannableData::Link(PostLink::ThreadLink {
-          board_code: String::from("wsg"),
-          thread_no: 3849481,
-          post_no: 3849481
-        })
-      },
+      Spannable { start: 0, len: 10, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 81423695 }) },
+      Spannable { start: 40, len: 17, spannable_data: SpannableData::Link(PostLink::ThreadLink { board_code: String::from("wsg"), thread_no: 3849481, post_no: 3849481 }) },
     ];
 
     let post_parser_context = create_post_parser_context(
@@ -362,7 +382,7 @@ https://www.youtube.com/watch?v=57tu8AtKf9E";
     <br>How to find/activate any version of Windows?<br>https://rentry.org/installwindows<br><br>Previous Thread <a href=\"/g/thread/81404563#p81404563\" class=\"quotelink\">&gt;&gt;81404563</a>";
 
     let expected_parsed_comment = "\
-    >Read the sticky: >>76759434\n\n\
+    >Read the sticky: >>76759434 →\n\n\
     >GNU/Linux questions >>>/g/fglt\n\n\
     >Windows questions >>>/g/fwt\n\n\
     >PC building? >>>/g/pcbg\n\n\
@@ -373,29 +393,29 @@ https://www.youtube.com/watch?v=57tu8AtKf9E";
     >Buying headphones >>>/g/hpg\n\n\
     How to find/activate any version of Windows?\n\
     https://rentry.org/installwindows\n\n\
-    Previous Thread >>81404563";
+    Previous Thread >>81404563 →";
 
     let expected_spannables = vec![
-      Spannable { start: 18, len: 10, spannable_data: SpannableData::Link(PostLink::ThreadLink { board_code: String::from("g"), thread_no: 76759434, post_no: 76759434 }) },
-      Spannable { start: 0, len: 28, spannable_data: SpannableData::GreenText },
-      Spannable { start: 29, len: 22, spannable_data: SpannableData::GreenText },
-      Spannable { start: 51, len: 10, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("fglt") }) },
-      Spannable { start: 62, len: 20, spannable_data: SpannableData::GreenText },
-      Spannable { start: 82, len: 9, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("fwt") }) },
-      Spannable { start: 92, len: 15, spannable_data: SpannableData::GreenText },
-      Spannable { start: 107, len: 10, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("pcbg") }) },
-      Spannable { start: 118, len: 24, spannable_data: SpannableData::GreenText },
-      Spannable { start: 142, len: 9, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("dpt") }) },
-      Spannable { start: 152, len: 23, spannable_data: SpannableData::GreenText },
-      Spannable { start: 175, len: 9, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("tpg") }) },
-      Spannable { start: 185, len: 20, spannable_data: SpannableData::GreenText },
-      Spannable { start: 205, len: 9, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("csg") }) },
-      Spannable { start: 215, len: 19, spannable_data: SpannableData::GreenText },
-      Spannable { start: 234, len: 9, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("hsg") }) },
-      Spannable { start: 244, len: 20, spannable_data: SpannableData::GreenText },
-      Spannable { start: 264, len: 9, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("hpg") }) },
-      Spannable { start: 320, len: 33, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://rentry.org/installwindows") }) },
-      Spannable { start: 371, len: 10, spannable_data: SpannableData::Link(PostLink::ThreadLink { board_code: String::from("g"), thread_no: 81404563, post_no: 81404563 }) },
+      Spannable { start: 18, len: 12, spannable_data: SpannableData::Link(PostLink::ThreadLink { board_code: String::from("g"), thread_no: 76759434, post_no: 76759434 }) },
+      Spannable { start: 0, len: 30, spannable_data: SpannableData::GreenText },
+      Spannable { start: 31, len: 22, spannable_data: SpannableData::GreenText },
+      Spannable { start: 53, len: 10, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("fglt") }) },
+      Spannable { start: 64, len: 20, spannable_data: SpannableData::GreenText },
+      Spannable { start: 84, len: 9, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("fwt") }) },
+      Spannable { start: 94, len: 15, spannable_data: SpannableData::GreenText },
+      Spannable { start: 109, len: 10, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("pcbg") }) },
+      Spannable { start: 120, len: 24, spannable_data: SpannableData::GreenText },
+      Spannable { start: 144, len: 9, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("dpt") }) },
+      Spannable { start: 154, len: 23, spannable_data: SpannableData::GreenText },
+      Spannable { start: 177, len: 9, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("tpg") }) },
+      Spannable { start: 187, len: 20, spannable_data: SpannableData::GreenText },
+      Spannable { start: 207, len: 9, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("csg") }) },
+      Spannable { start: 217, len: 19, spannable_data: SpannableData::GreenText },
+      Spannable { start: 236, len: 9, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("hsg") }) },
+      Spannable { start: 246, len: 20, spannable_data: SpannableData::GreenText },
+      Spannable { start: 266, len: 9, spannable_data: SpannableData::Link(PostLink::SearchLink { board_code: String::from("g"), search_query: String::from("hpg") }) },
+      Spannable { start: 322, len: 33, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://rentry.org/installwindows") }) },
+      Spannable { start: 373, len: 12, spannable_data: SpannableData::Link(PostLink::ThreadLink { board_code: String::from("g"), thread_no: 81404563, post_no: 81404563 }) },
     ];
 
     let post_parser_context = create_post_parser_context(
@@ -457,13 +477,110 @@ what?";
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
+  #[test]
+  fn post_parser_test_target_blank_attribute_parsing() {
+    let post_comment_raw = "<span class=\"quote\">&gt;Past thread:</span><br>https://desuarchive.org/aco/thread/<wbr>5189244<br>\
+    <br><span class=\"quote\">&gt;Other CYOA Threads</span><br><a href=\"https://boards.4chan.org/search#/cyoag\" target=\"_blank\">\
+    https://boards.4chan.org/search#/cy<wbr>oag</a><br><br><span class=\"quote\">&gt;/cyoag/&#039;s CYOA archives and related resources:</span>\
+    <br>https://pastebin.com/vrqYhnpu<br>Includes - but is not limited to - personal archives of a number of authors, and an extensive \
+    Allsync archive that has both SFW and NSFW CYOAs.<br>If you&#039;re looking for a specific CYOA, it&#039;s suggested that you check those first.";
+
+    let expected_parsed_comment = ">Past thread:\nhttps://desuarchive.org/aco/thread/5189244\n\n>Other CYOA Threads\n\
+    https://boards.4chan.org/search#/cyoag\n\n>/cyoag/\'s CYOA archives and related resources:\nhttps://pastebin.com/vrqYhnpu\n\
+    Includes - but is not limited to - personal archives of a number of authors, and an extensive Allsync archive that has both SFW and NSFW CYOAs.\n\
+    If you\'re looking for a specific CYOA, it\'s suggested that you check those first.";
+
+    let expected_spannables = vec![
+      Spannable { start: 0, len: 13, spannable_data: SpannableData::GreenText },
+      Spannable { start: 14, len: 42, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://desuarchive.org/aco/thread/5189244") }) },
+      Spannable { start: 57, len: 20, spannable_data: SpannableData::GreenText },
+      Spannable { start: 78, len: 38, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://boards.4chan.org/search#/cyoag") }) },
+      Spannable { start: 117, len: 48, spannable_data: SpannableData::GreenText },
+      Spannable { start: 166, len: 29, spannable_data: SpannableData::Link(PostLink::UrlLink { link: String::from("https://pastebin.com/vrqYhnpu") }) },
+    ];
+
+    let post_parser_context = create_post_parser_context(
+      1235,
+      set_mut!(),
+      set_mut!()
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  #[test]
+  fn post_parser_test_unicode_japanese_text() {
+    let post_comment_raw = "<a href=\"#p221655599\" class=\"quotelink\">&gt;&gt;221655599</a><br>Aaaaaaa the day can&#039;t be over yet<br><br>だれか !!!時よ止まれ,お願いします！！！";
+    let expected_parsed_comment = ">>221655599\nAaaaaaa the day can\'t be over yet\n\nだれか !!!時よ止まれ,お願いします！！！";
+
+    let expected_spannables = vec![
+      Spannable { start: 0, len: 11, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 221655599 }) },
+    ];
+
+    let post_parser_context = create_post_parser_context(
+      1235,
+      set_mut!(),
+      set_mut!(221655599u64)
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  #[test]
+  fn post_parser_test_exif_toggle_case() {
+    let post_comment_raw = "looks like autism and seasonal sales/releases are related, check the autism lows vs dslr highs. \
+    seems that /p/haggots are confirmed retards and gearfagging is the seasonal temporary cure. LEL<br><br><a href=\"#p3878363\" \
+    class=\"quotelink\">&gt;&gt;3878363</a><br>ah well, I was kinda drunk passing Vietnam to Cambodia river border, traveled for around 8 hours via a wooden boat. \
+    good times<br><br><span class=\"abbr\">[EXIF data available. Click <a href=\"javascript:void(0)\" onclick=\"toggle('exif1620356074086')\">here</a> to show/hide.]</span><br>\
+    <table class=\"exif\" id=\"exif1620356074086\"><tr><td colspan=\"2\"><b>Camera-Specific Properties:</b></td></tr><tr><td colspan=\"2\"><b></b></td>\
+    </tr><tr><td>Camera Software</td><td>Android RP1A.200720.012.P615XXU4CUC3</td></tr><tr><td colspan=\"2\"><b></b></td></tr><tr><td colspan=\"2\"><b>\
+    Image-Specific Properties:</b></td></tr><tr><td colspan=\"2\"><b></b></td></tr><tr><td>Image Width</td><td>2000</td></tr><tr><td>Image Height</td>\
+    <td>1200</td></tr><tr><td>Image Orientation</td><td>Top, Left-Hand</td></tr><tr><td colspan=\"2\"><b></b></td></tr></table>";
+
+    let expected_parsed_comment = "looks like autism and seasonal sales/releases are related, check the autism lows vs dslr highs. seems that /p/haggots are \
+    confirmed retards and gearfagging is the seasonal temporary cure. LEL\n\n>>3878363\nah well, I was kinda drunk passing Vietnam to Cambodia river border, \
+    traveled for around 8 hours via a wooden boat. good times\n\n\n\
+    Camera-Specific Properties:\n\n\
+    Camera SoftwareAndroid RP1A.200720.012.P615XXU4CUC3\n\n\
+    Image-Specific Properties:\n\n\
+    Image Width2000\n\
+    Image Height1200\n\
+    Image OrientationTop, Left-Hand\n\n";
+
+    let expected_spannables = vec![
+      Spannable { start: 193, len: 9, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 3878363 }) },
+      Spannable { start: 331, len: 28, spannable_data: SpannableData::BoldText },
+      Spannable { start: 413, len: 27, spannable_data: SpannableData::BoldText },
+    ];
+
+    let post_parser_context = create_post_parser_context(
+      1235,
+      set_mut!(),
+      set_mut!(3878363u64)
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  #[test]
+  fn post_parser_test_strong_tag() {
+    let post_comment_raw = "More of her? <br><br><strong style=\"color: red;\">(USER WAS BANNED FOR THIS POST)</strong>";
+    let expected_parsed_comment = "More of her? \n\n(USER WAS BANNED FOR THIS POST)";
+
+    let expected_spannables = vec![
+      Spannable { start: 14, len: 32, spannable_data: SpannableData::BoldText },
+    ];
+
+    let post_parser_context = create_post_parser_context(
+      1235,
+      set_mut!(),
+      set_mut!()
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
   // TODO: BoardLink
-  // TODO: SearchLink
-
-  // Bunch of cross-thread (dead and alive) links
-  // Breakfast Baki, Maximum Tournament-hen.<br>The only rule is no weapons. Anything else goes.<br>OP for the finals: https://www.youtube.com/watch?v=9PY<wbr>FIgOaWz0<br><br>Last time: A flashback to Yuujiro&#039;s past in Vietnam.<br>Volume 21: <span class=\"deadlink\">&gt;&gt;220319165</span><br>Volume 22: <span class=\"deadlink\">&gt;&gt;220380103</span><br>Volume 23: <span class=\"deadlink\">&gt;&gt;220441774</span><br>Volume 24: <span class=\"deadlink\">&gt;&gt;220501577</span><br>Volume 25: <span class=\"deadlink\">&gt;&gt;220559839</span><br>Volume 26: <span class=\"deadlink\">&gt;&gt;220623109</span><br>Volume 27: <span class=\"deadlink\">&gt;&gt;220684674</span><br>Volume 28: <span class=\"deadlink\">&gt;&gt;220748482</span><br>Volume 29: <span class=\"deadlink\">&gt;&gt;220805232</span><br>Volume 30: <span class=\"deadlink\">&gt;&gt;220862935</span><br>Volume 31: <span class=\"deadlink\">&gt;&gt;220924399</span><br>Volume 32: <span class=\"deadlink\">&gt;&gt;220981838</span><br>Volume 33: <span class=\"deadlink\">&gt;&gt;221038807</span><br>Volume 34: <a href=\"/a/thread/221101420#p221101420\" class=\"quotelink\">&gt;&gt;221101420</a><br>Volume 35: <a href=\"/a/thread/221160344#p221160344\" class=\"quotelink\">&gt;&gt;221160344</a><br>Volume 36: <a href=\"/a/thread/221218747#p221218747\" class=\"quotelink\">&gt;&gt;221218747</a><br>Volume 37: <a href=\"/a/thread/221275313#p221275313\" class=\"quotelink\">&gt;&gt;221275313</a><br>Volume 38: <a href=\"/a/thread/221332969#p221332969\" class=\"quotelink\">&gt;&gt;221332969</a><br>Volume 39: <a href=\"/a/thread/221386198#p221386198\" class=\"quotelink\">&gt;&gt;221386198</a><br>Volume 40: <a href=\"/a/thread/221443978#p221443978\" class=\"quotelink\">&gt;&gt;221443978</a><br>https://archive.wakarimasen.moe/a/s<wbr>earch/subject/Storytime%3A%20Grappl<wbr>er%20Baki/
-
-  // TODO: Unicode text (Japasene/Russian/some other?)
-  // Japanese text with quote
-  // <a href="#p221655599" class="quotelink">&gt;&gt;221655599</a><br>Aaaaaaa the day can&#039;t be over yet<br><br>だれか !!!時よ止まれ,お願いします！！！
+  // TODO: Unicode text (Russian/some other?)
+  // TODO: parse links like this one (https://boards.4chan.org/search#/cyoag) as global search shortcuts
 }

@@ -19,6 +19,9 @@ mod rules {
   pub mod rule_handler;
   pub mod span;
   pub mod spoiler;
+  pub mod table_row;
+  pub mod bold;
+  pub mod abbr;
 }
 
 pub mod html_parser {
@@ -123,6 +126,7 @@ pub enum SpannableData {
   Link(PostLink),
   Spoiler,
   GreenText,
+  BoldText
 }
 
 #[derive(Debug, PartialEq)]

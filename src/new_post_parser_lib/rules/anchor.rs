@@ -7,6 +7,11 @@ use crate::util::helpers::SumBy;
 
 const TAG: &str = "AnchorRuleHandler";
 const HREF: &str = "href";
+const CROSS_THREAD_POSTFIX: &str = " →";
+const OP_POSTFIX: &str = " (OP)";
+const ME_POSTFIX: &str = " (Me)";
+const YOU_POSTFIX: &str = " (You)";
+const DEAD_POSTFIX: &str = " (DEAD)";
 
 lazy_static! {
   static ref BOARD_LINK_PATTERN: Regex = Regex::new(r"//.*/(\w+)/$").unwrap();
@@ -105,9 +110,17 @@ fn handle_href_attr<'a>(
         PostLink::BoardLink { .. } |
         PostLink::SearchLink  { .. } |
         PostLink::ThreadLink { .. } => {
+          let result_text = if let PostLink::ThreadLink { .. } = post_link {
+            String::from(unescaped_text + CROSS_THREAD_POSTFIX)
+          } else {
+            unescaped_text
+          };
+
+          let result_text_part = TextPart::new(result_text);
+
           let spannable = Spannable {
             start: total_text_length,
-            len: unescaped_text.len(),
+            len: result_text_part.characters_count,
             spannable_data: SpannableData::Link(post_link)
           };
 
@@ -115,8 +128,7 @@ fn handle_href_attr<'a>(
             out_spannables.push(spannable);
           }
 
-          // TODO: add link suffixes (like >>76759434 →)
-          out_text_parts.push(TextPart::new(unescaped_text));
+          out_text_parts.push(result_text_part);
         }
       }
     }
@@ -157,17 +169,17 @@ pub fn handle_single_post_quote(
   let mut quote_text_suffixes = String::new();
 
   if post_parser_context.is_quoting_original_post(quote_post_id) {
-    quote_text_suffixes.push_str(&" (OP)");
+    quote_text_suffixes.push_str(OP_POSTFIX);
   }
 
   if post_parser_context.is_my_reply_to_my_own_post(post_raw.post_id, quote_post_id) {
-    quote_text_suffixes.push_str(&" (Me)");
+    quote_text_suffixes.push_str(ME_POSTFIX);
   } else if post_parser_context.is_reply_to_my_post(quote_post_id) {
-    quote_text_suffixes.push_str(&" (You)");
+    quote_text_suffixes.push_str(YOU_POSTFIX);
   }
 
   if is_dead {
-    quote_text_suffixes.push_str(&" (DEAD)");
+    quote_text_suffixes.push_str(DEAD_POSTFIX);
   }
 
   let quote_text_result = format!("{}{}", String::from(unescaped_text), quote_text_suffixes);
