@@ -642,7 +642,26 @@ what?";
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
-  // TODO: BoardLink
+  #[test]
+  fn post_parser_test_cross_board_link() {
+    let post_comment_raw = "All posting of untranslated visual novels belongs on <a href=\"//boards.4channel.org/jp/\" class=\"quotelink\">&gt;&gt;&gt;/jp/</a>\
+    <br>E-celeb shitposting is not allowed.<br>";
+
+    let expected_parsed_comment = "All posting of untranslated visual novels belongs on >>>/jp/\nE-celeb shitposting is not allowed.\n";
+
+    let expected_spannables = vec![
+      Spannable { start: 53, len: 7, spannable_data: SpannableData::Link(PostLink::BoardLink { board_code: "jp".to_string() }) },
+    ];
+
+    let post_parser_context = create_post_parser_context(
+      1235,
+      set_of!(),
+      set_of!()
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
   // TODO: Unicode text (Russian/some other?)
   // TODO: parse links like this one (https://boards.4chan.org/search#/cyoag) as global search shortcuts
 }
