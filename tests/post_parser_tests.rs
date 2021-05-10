@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test_main {
-  use new_post_parser_lib::{PostParserContext, Spannable, PostRaw, PostParser, SpannableData, PostLink, set_mut};
+  use new_post_parser_lib::{PostParserContext, Spannable, PostRaw, PostParser, SpannableData, PostLink, set_of, Element};
   use std::collections::HashSet;
 
   fn create_post_parser_context(
@@ -51,8 +51,8 @@ mod test_main {
 
     let post_parser_context = create_post_parser_context(
       1234567890,
-      set_mut!(),
-      set_mut!()
+      set_of!(),
+      set_of!()
     );
 
     run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -67,8 +67,8 @@ mod test_main {
 
     let post_parser_context = create_post_parser_context(
       1234567890,
-      set_mut!(),
-      set_mut!()
+      set_of!(),
+      set_of!()
     );
 
     run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -89,8 +89,8 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
 
     let post_parser_context = create_post_parser_context(
       1234567890,
-      set_mut!(),
-      set_mut!()
+      set_of!(),
+      set_of!()
     );
 
     run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -111,8 +111,8 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
 
     let post_parser_context = create_post_parser_context(
       1234567890,
-      set_mut!(),
-      set_mut!(333520145)
+      set_of!(),
+      set_of!(333520145)
     );
 
     run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -133,8 +133,8 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
 
     let post_parser_context = create_post_parser_context(
       333520145,
-      set_mut!(),
-      set_mut!(333520145)
+      set_of!(),
+      set_of!(333520145)
     );
 
     run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -155,8 +155,8 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
 
     let post_parser_context = create_post_parser_context(
       333520145,
-      set_mut!(333520145),
-      set_mut!(333520145)
+      set_of!(333520145),
+      set_of!(333520145)
     );
 
     run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -177,8 +177,8 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
 
     let post_parser_context = create_post_parser_context(
       333520145,
-      set_mut!(333520145),
-      set_mut!(333520145)
+      set_of!(333520145),
+      set_of!(333520145)
     );
 
     run_test(333520145, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -199,8 +199,8 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
 
     let post_parser_context = create_post_parser_context(
       333520145,
-      set_mut!(333520145, 333520391),
-      set_mut!(333520145, 333520391)
+      set_of!(333520145, 333520391),
+      set_of!(333520145, 333520391)
     );
 
     run_test(123, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -220,8 +220,8 @@ stop you</span><br><s>Should I use a female version of my name for maximal self-
 
     let post_parser_context = create_post_parser_context(
       333859392,
-      set_mut!(),
-      set_mut!(333890765)
+      set_of!(),
+      set_of!(333890765)
     );
 
     run_test(333890765, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -240,8 +240,8 @@ stop you</span><br><s>Should I use a female version of my name for maximal self-
 
     let post_parser_context = create_post_parser_context(
       1234,
-      set_mut!(),
-      set_mut!(333863078)
+      set_of!(),
+      set_of!(333863078)
     );
 
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -260,8 +260,8 @@ stop you</span><br><s>Should I use a female version of my name for maximal self-
 
     let post_parser_context = create_post_parser_context(
       1234,
-      set_mut!(),
-      set_mut!(333918351)
+      set_of!(),
+      set_of!(333918351)
     );
 
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -280,8 +280,8 @@ stop you</span><br><s>Should I use a female version of my name for maximal self-
 
     let post_parser_context = create_post_parser_context(
       1234,
-      set_mut!(),
-      set_mut!(333918351, 34511118)
+      set_of!(),
+      set_of!(333918351, 34511118)
     );
 
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -339,8 +339,8 @@ https://www.youtube.com/watch?v=57tu8AtKf9E";
 
     let post_parser_context = create_post_parser_context(
       1234,
-      set_mut!(),
-      set_mut!()
+      set_of!(),
+      set_of!()
     );
 
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -360,8 +360,8 @@ https://www.youtube.com/watch?v=57tu8AtKf9E";
 
     let post_parser_context = create_post_parser_context(
       1234,
-      set_mut!(),
-      set_mut!(81423695)
+      set_of!(),
+      set_of!(81423695)
     );
 
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -420,8 +420,8 @@ https://www.youtube.com/watch?v=57tu8AtKf9E";
 
     let post_parser_context = create_post_parser_context(
       81425984,
-      set_mut!(),
-      set_mut!(81425984)
+      set_of!(),
+      set_of!(81425984)
     );
 
     run_test(81425984, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -449,8 +449,8 @@ what?";
 
     let post_parser_context = create_post_parser_context(
       1235,
-      set_mut!(),
-      set_mut!()
+      set_of!(),
+      set_of!()
     );
 
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -470,8 +470,8 @@ what?";
 
     let post_parser_context = create_post_parser_context(
       1235,
-      set_mut!(),
-      set_mut!(221656514u64)
+      set_of!(),
+      set_of!(221656514u64)
     );
 
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -501,8 +501,8 @@ what?";
 
     let post_parser_context = create_post_parser_context(
       1235,
-      set_mut!(),
-      set_mut!()
+      set_of!(),
+      set_of!()
     );
 
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -519,8 +519,8 @@ what?";
 
     let post_parser_context = create_post_parser_context(
       1235,
-      set_mut!(),
-      set_mut!(221655599u64)
+      set_of!(),
+      set_of!(221655599u64)
     );
 
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
@@ -537,33 +537,53 @@ what?";
     Image-Specific Properties:</b></td></tr><tr><td colspan=\"2\"><b></b></td></tr><tr><td>Image Width</td><td>2000</td></tr><tr><td>Image Height</td>\
     <td>1200</td></tr><tr><td>Image Orientation</td><td>Top, Left-Hand</td></tr><tr><td colspan=\"2\"><b></b></td></tr></table>";
 
-    let expected_parsed_comment = "looks like autism and seasonal sales/releases are related, check the autism lows vs dslr highs. seems that /p/haggots are \
-    confirmed retards and gearfagging is the seasonal temporary cure. LEL\n\n>>3878363\nah well, I was kinda drunk passing Vietnam to Cambodia river border, \
-    traveled for around 8 hours via a wooden boat. good times\n\n\n\
-    Camera-Specific Properties:\n\n\
-    Camera SoftwareAndroid RP1A.200720.012.P615XXU4CUC3\n\n\
-    Image-Specific Properties:\n\n\
-    Image Width2000\n\
-    Image Height1200\n\
-    Image OrientationTop, Left-Hand\n\n";
+    let expected_parsed_comment = "looks like autism and seasonal sales/releases are related, check the autism lows vs dslr highs. \
+    seems that /p/haggots are confirmed retards and gearfagging is the seasonal temporary cure. LEL\n\n\
+    >>3878363\nah well, I was kinda drunk passing Vietnam to Cambodia river border, traveled for around 8 hours via a wooden boat. good times\n\n\n\
+    Camera-Specific Properties: \n\n\
+    Camera Software Android RP1A.200720.012.P615XXU4CUC3 \n\n\
+    Image-Specific Properties: \n\n\
+    Image Width 2000 \n\
+    Image Height 1200 \n\
+    Image Orientation Top, Left-Hand \n\n";
 
     let expected_spannables = vec![
       Spannable { start: 193, len: 9, spannable_data: SpannableData::Link(PostLink::Quote { post_no: 3878363 }) },
       Spannable { start: 331, len: 28, spannable_data: SpannableData::BoldText },
-      Spannable { start: 413, len: 27, spannable_data: SpannableData::BoldText },
+      Spannable { start: 416, len: 27, spannable_data: SpannableData::BoldText },
+      Spannable { start: 331, len: 187, spannable_data: SpannableData::Monospace },
     ];
 
     let post_parser_context = create_post_parser_context(
       1235,
-      set_mut!(),
-      set_mut!(3878363u64)
+      set_of!(),
+      set_of!(3878363u64)
     );
 
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
-  fn post_parser_test_strong_tag() {
+  fn post_parser_test_bold_tag() {
+    let post_comment_raw = "More of her? <br><br><b style=\"color: red;\">(USER WAS BANNED FOR THIS POST)</b>";
+    let expected_parsed_comment = "More of her? \n\n(USER WAS BANNED FOR THIS POST)";
+
+    let expected_spannables = vec![
+      Spannable { start: 14, len: 32, spannable_data: SpannableData::TextForegroundColorRaw { color_hex: "#FF0000".to_string() } },
+      Spannable { start: 14, len: 32, spannable_data: SpannableData::BoldText },
+    ];
+
+    let post_parser_context = create_post_parser_context(
+      1235,
+      set_of!(),
+      set_of!()
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  #[test]
+  fn post_parser_test_style_attr1() {
     let post_comment_raw = "More of her? <br><br><strong style=\"color: red;\">(USER WAS BANNED FOR THIS POST)</strong>";
     let expected_parsed_comment = "More of her? \n\n(USER WAS BANNED FOR THIS POST)";
 
@@ -574,14 +594,53 @@ what?";
 
     let post_parser_context = create_post_parser_context(
       1235,
-      set_mut!(),
-      set_mut!()
+      set_of!(),
+      set_of!()
     );
 
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
-  // TODO: parse style in other tags like <b>
+  #[test]
+  fn post_parser_test_style_attr2() {
+    let post_comment_raw = "1. You must check your #fortune in order to post in this thread.<span class=\"fortune\" style=\"color:#fd4d32\">\
+    <br><br><b>Your fortune: Excellent Luck</b></span>";
+    let expected_parsed_comment = "1. You must check your #fortune in order to post in this thread.\n\nYour fortune: Excellent Luck";
+
+    let expected_spannables = vec![
+      Spannable { start: 65, len: 29, spannable_data: SpannableData::BoldText },
+      Spannable { start: 0, len: 94, spannable_data: SpannableData::TextForegroundColorRaw { color_hex: "#fd4d32".to_string() } },
+    ];
+
+    let post_parser_context = create_post_parser_context(
+      1235,
+      set_of!(),
+      set_of!()
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  #[test]
+  fn post_parser_test_pre_tag() {
+    let post_comment_raw = "<a href=\"/g/thread/81446291#p81478722\" class=\"quotelink\">&gt;&gt;81478722</a><br>nvm I guess I will just use<br>\
+    <pre class=\"prettyprint\">ls -l | grep -i ^d.* | wc -l</pre><br>and write a function, shouldn&#039;t be long";
+
+    let expected_parsed_comment = ">>81478722 →\nnvm I guess I will just use\nls -l | grep -i ^d.* | wc -l\nand write a function, shouldn\'t be long";
+
+    let expected_spannables = vec![
+      Spannable { start: 0, len: 12, spannable_data: SpannableData::Link(PostLink::ThreadLink { board_code: "g".to_string(), thread_no: 81446291, post_no: 81478722 }) },
+      Spannable { start: 40, len: 29, spannable_data: SpannableData::Monospace },
+    ];
+
+    let post_parser_context = create_post_parser_context(
+      1235,
+      set_of!(),
+      set_of!(81478722u64)
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
 
   // TODO: BoardLink
   // TODO: Unicode text (Russian/some other?)

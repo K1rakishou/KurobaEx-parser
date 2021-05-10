@@ -114,7 +114,7 @@ impl HtmlParser {
     );
 
     let updated_element = Element {
-      name: element.name,
+      tag_name: element.tag_name,
       attributes: element.attributes,
       children: child_nodes,
       is_void_element: false,
@@ -180,7 +180,7 @@ impl HtmlParser {
     let is_void_element = VOID_ELEMENTS.contains(&tag_name.as_str());
 
     return Element {
-      name: tag_name,
+      tag_name: tag_name,
       attributes,
       children: Vec::with_capacity(4),
       is_void_element
@@ -241,7 +241,7 @@ impl HtmlParser {
           iterator(format!("{}", text));
         }
         Node::Element(element) => {
-          iterator(format!("<{}{}>", &element.name, self.debug_format_attributes(&element.attributes)));
+          iterator(format!("<{}{}>", &element.tag_name, self.debug_format_attributes(&element.attributes)));
           self.debug_print_nodes_internal(&element.children, iterator);
         }
       }
@@ -270,7 +270,7 @@ impl HtmlParser {
           iterator(format!("{}", text));
         }
         Node::Element(element) => {
-          iterator(format!("<{}{}>", &element.name, self.debug_format_attributes(&element.attributes)));
+          iterator(format!("<{}{}>", &element.tag_name, self.debug_format_attributes(&element.attributes)));
           self.debug_concat_into_string_internal(&element.children, iterator);
         }
       }

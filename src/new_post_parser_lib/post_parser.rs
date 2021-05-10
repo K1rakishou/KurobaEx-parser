@@ -82,24 +82,6 @@ pub mod post_parser {
       };
     }
 
-    pub fn is_element_supported(&self, tag_name: &str, attr_name: &str) -> bool {
-      let rules = &self.comment_parser.matching_rules;
-
-      if !rules.contains_key(tag_name) {
-        return false;
-      }
-
-      let tag_rules = self.comment_parser.matching_rules.get(tag_name).unwrap();
-
-      for tag_rule in tag_rules {
-        if !tag_rule.req_attributes.contains(attr_name) {
-          return false;
-        }
-      }
-
-      return true;
-    }
-
     pub fn parse_post(&self, post_raw: &PostRaw) -> ParsedPost {
       return ParsedPost::new(
         self.post_parser_context,

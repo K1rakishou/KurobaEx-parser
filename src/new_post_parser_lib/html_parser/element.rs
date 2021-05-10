@@ -45,9 +45,9 @@ impl fmt::Display for Element {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(
       f,
-      "Element(name={}, attributes={}, children={}, is_void_element={})",
-      self.name,
-      self.attributes.len(),
+      "Element(name={}, attributes={:?}, children={}, is_void_element={})",
+      self.tag_name,
+      self.attributes,
       self.children.len(),
       self.is_void_element
     )

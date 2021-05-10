@@ -8,8 +8,9 @@ use std::collections::{HashSet, HashMap};
 use linked_hash_map::LinkedHashMap;
 use crate::html_parser::node::Node;
 use crate::rules::rule_handler::RuleHandler;
-use core::fmt;
+use core::{fmt};
 use std::rc::Rc;
+use std::fmt::{Debug};
 
 mod post_parser;
 mod comment_parser;
@@ -21,10 +22,13 @@ mod rules {
   pub mod rule_handler;
   pub mod span;
   pub mod spoiler;
+  pub mod table;
   pub mod table_row;
+  pub mod table_data;
   pub mod bold;
   pub mod abbr;
   pub mod style;
+  pub mod pre;
 }
 
 pub mod html_parser {
@@ -78,9 +82,9 @@ pub struct PostParserContext {
   thread_posts: HashSet<u64>
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct Element {
-  pub name: String,
+  pub tag_name: String,
   pub attributes: LinkedHashMap<String, String>,
   pub children: Vec<Node>,
   pub is_void_element: bool,
@@ -88,7 +92,7 @@ pub struct Element {
 
 pub struct PostParser<'a> {
   post_parser_context: &'a PostParserContext,
-  comment_parser: Box<CommentParser<'a>>,
+  pub comment_parser: Box<CommentParser<'a>>,
 }
 
 pub struct CommentParser<'a> {
@@ -98,9 +102,15 @@ pub struct CommentParser<'a> {
   replacement_rules: HashMap<String, String>
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Attribute {
+  attr_name: String,
+  attr_value: Option<String>
+}
+
 pub struct ParsingRule {
-  tag: String,
-  req_attributes: HashSet<String>,
+  tag_name: String,
+  required_attributes: HashSet<Attribute>,
   handler: Rc<dyn RuleHandler>
 }
 
@@ -182,6 +192,7 @@ pub enum SpannableData {
   // font-weight:600;font-weight:bold
   FontWeight { weight: String },
   // color:#fd4d32
+  Monospace,
   TextForegroundColorRaw { color_hex: String },
   TextBackgroundColorRaw { color_hex: String },
   TextForegroundColorId { color_id: ChanThemeColorId },

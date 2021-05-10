@@ -1,5 +1,5 @@
 #[macro_export]
-macro_rules! set_mut {
+macro_rules! set_of {
     ( $( $x:expr ),* ) => {  // Match zero or more comma delimited items
         {
             let mut temp_set = HashSet::new();  // Create a mutable HashSet
@@ -12,7 +12,7 @@ macro_rules! set_mut {
 }
 
 #[macro_export]
-macro_rules! set_immut {
+macro_rules! empty_set {
     ( $( $x:expr ),* ) => {  // Match zero or more comma delimited items
         {
             let temp_set = HashSet::new();  // Create a mutable HashSet

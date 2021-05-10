@@ -1,7 +1,7 @@
 use std::fmt;
 use crate::Element;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub enum Node {
   Text(String),
   Element(Element)

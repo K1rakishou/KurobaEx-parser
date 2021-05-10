@@ -6,7 +6,7 @@ pub mod comment_parser {
   use crate::rules::rule_handler::RuleHandler;
   use crate::rules::line_break::LineBreakRuleHandler;
   use std::fmt;
-  use crate::{set_immut, set_mut, TextPart};
+  use crate::{empty_set, set_of, TextPart, Attribute};
   use crate::{PostRaw, PostParserContext, Element, ParsingRule, CommentParser, PostLink, SpannableData, Spannable, ParsedSpannableText};
   use crate::rules::spoiler::SpoilerHandler;
   use crate::rules::table_row::TableRowHandler;
@@ -15,6 +15,10 @@ pub mod comment_parser {
   use std::rc::Rc;
   use crate::rules::style::StyleHandler;
   use linked_hash_map::LinkedHashMap;
+  use std::fmt::Debug;
+  use crate::rules::pre::PreHandler;
+  use crate::rules::table_data::TableDataHandler;
+  use crate::rules::table::TableHandler;
 
   const TAG: &str = "CommentParser";
 
@@ -76,6 +80,9 @@ pub mod comment_parser {
         SpannableData::FontWeight { weight } => {
           write!(f, "FontWeight(weight: {})", weight)
         }
+        SpannableData::Monospace => {
+          write!(f, "Monospace()")
+        }
       }
     }
   }
@@ -104,6 +111,12 @@ pub mod comment_parser {
     }
   }
 
+  impl Debug for ParsingRule {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+      write!(f, "ParsingRule(tag: {}, req_attributes: {:?})", self.tag_name, self.required_attributes)
+    }
+  }
+
   impl ParsedSpannableText {
     pub fn new(comment_raw: &str, comment_text: Box<String>, spannables: Box<Vec<Spannable>>) -> ParsedSpannableText {
       ParsedSpannableText {
@@ -122,35 +135,71 @@ pub mod comment_parser {
     }
   }
 
+  impl Attribute {
+    fn with_name(attr_name: &str) -> Attribute {
+      return Attribute {
+        attr_name: attr_name.to_string(),
+        attr_value: Option::None
+      }
+    }
+
+    fn with_name_and_value(attr_name: &str, attr_value: &str) -> Attribute {
+      return Attribute {
+        attr_name: attr_name.to_string(),
+        attr_value: Option::Some(attr_value.to_string())
+      }
+    }
+
+    fn with_class(attr_value: &str) -> Attribute {
+      return Attribute {
+        attr_name: "class".to_string(),
+        attr_value: Option::Some(attr_value.to_string())
+      }
+    }
+  }
+
   impl ParsingRule {
-    pub fn new(tag: &str, req_attributes: HashSet<String>, handler: Rc<dyn RuleHandler>) -> ParsingRule {
+    pub fn new(tag: &str, req_attributes: HashSet<Attribute>, handler: Rc<dyn RuleHandler>) -> ParsingRule {
       ParsingRule {
-        tag: String::from(tag),
-        req_attributes,
+        tag_name: String::from(tag),
+        required_attributes: req_attributes,
         handler
       }
     }
 
     pub fn high_priority(&self) -> bool {
-      return self.req_attributes.len() > 0;
+      return self.required_attributes.len() > 0;
     }
 
     pub fn applies(&self, element: &Element) -> bool {
-      if self.req_attributes.is_empty() {
+      if self.required_attributes.is_empty() {
         return true
       }
 
-      for req_attribute in &self.req_attributes {
-        if element.get_attr_value(req_attribute).is_some() {
-          return true;
+      for req_attribute in &self.required_attributes {
+        if req_attribute.attr_name == "*" {
+          continue;
         }
 
-        if element.has_class(&req_attribute) {
-          return true;
+        let attr_name = &req_attribute.attr_name;
+        let attr_value = element.attributes.get(attr_name);
+
+        if req_attribute.attr_value.is_none() {
+          continue;
+        }
+
+        let req_attr_value = req_attribute.attr_value.as_ref().unwrap();
+        if attr_value.is_none() {
+          return false;
+        }
+
+        let attr_value = attr_value.unwrap();
+        if req_attr_value != attr_value {
+          return false;
         }
       }
 
-      return false;
+      return true;
     }
 
   }
@@ -166,11 +215,11 @@ pub mod comment_parser {
     }
 
     fn add_matching_rule(&mut self, rule: Rc<ParsingRule>) {
-      if !self.matching_rules.contains_key(&rule.tag) {
-        self.matching_rules.insert(String::from(&rule.tag), Vec::new());
+      if !self.matching_rules.contains_key(&rule.tag_name) {
+        self.matching_rules.insert(String::from(&rule.tag_name), Vec::new());
       }
 
-      self.matching_rules.get_mut(&rule.tag).unwrap().push(rule);
+      self.matching_rules.get_mut(&rule.tag_name).unwrap().push(rule);
     }
 
     pub fn add_replacement_rule(&mut self, pattern: &str, value: &str) {
@@ -183,29 +232,64 @@ pub mod comment_parser {
 
     pub fn add_default_matching_rules(&mut self) {
       // Wildcard rules go first
-      self.add_matching_rule(Rc::new(ParsingRule::new("*", set_mut!("style".to_string()), Rc::new(StyleHandler::new()))));
+      self.add_matching_rule(Rc::new(ParsingRule::new("*", set_of!(Attribute::with_name("style")), Rc::new(StyleHandler::new()))));
 
       // Then go rules that require specific attributes
-      self.add_matching_rule(Rc::new(ParsingRule::new("span", set_mut!("abbr".to_string()), Rc::new(AbbrHandler::new()))));
+      self.add_matching_rule(Rc::new(ParsingRule::new("span", set_of!(Attribute::with_class("abbr")), Rc::new(AbbrHandler::new()))));
+      self.add_matching_rule(Rc::new(ParsingRule::new("pre", set_of!(Attribute::with_name_and_value("*", "prettyprint")), Rc::new(PreHandler::new()))));
 
       // Then go general rules for the whole tag
-      self.add_matching_rule(Rc::new(ParsingRule::new("span", set_immut!(), Rc::new(SpanHandler::new()))));
-      self.add_matching_rule(Rc::new(ParsingRule::new("a", set_immut!(), Rc::new(AnchorRuleHandler::new()))));
-      self.add_matching_rule(Rc::new(ParsingRule::new("br", set_immut!(), Rc::new(LineBreakRuleHandler::new()))));
-      self.add_matching_rule(Rc::new(ParsingRule::new("s", set_immut!(), Rc::new(SpoilerHandler::new()))));
-      self.add_matching_rule(Rc::new(ParsingRule::new("tr", set_immut!(), Rc::new(TableRowHandler::new()))));
-      self.add_matching_rule(Rc::new(ParsingRule::new("b", set_immut!(), Rc::new(BoldHandler::new()))));
-      self.add_matching_rule(Rc::new(ParsingRule::new("strong", set_immut!(), Rc::new(BoldHandler::new()))));
+      self.add_matching_rule(Rc::new(ParsingRule::new("span", empty_set!(), Rc::new(SpanHandler::new()))));
+      self.add_matching_rule(Rc::new(ParsingRule::new("a", empty_set!(), Rc::new(AnchorRuleHandler::new()))));
+      self.add_matching_rule(Rc::new(ParsingRule::new("br", empty_set!(), Rc::new(LineBreakRuleHandler::new()))));
+      self.add_matching_rule(Rc::new(ParsingRule::new("s", empty_set!(), Rc::new(SpoilerHandler::new()))));
+      self.add_matching_rule(Rc::new(ParsingRule::new("tr", empty_set!(), Rc::new(TableRowHandler::new()))));
+      self.add_matching_rule(Rc::new(ParsingRule::new("td", empty_set!(), Rc::new(TableDataHandler::new()))));
+      self.add_matching_rule(Rc::new(ParsingRule::new("b", empty_set!(), Rc::new(BoldHandler::new()))));
+      self.add_matching_rule(Rc::new(ParsingRule::new("strong", empty_set!(), Rc::new(BoldHandler::new()))));
+      self.add_matching_rule(Rc::new(ParsingRule::new("table", empty_set!(), Rc::new(TableHandler::new()))));
     }
 
-    pub fn get_matching_rules(&self, element_name: &str) -> Option<Vec<Rc<ParsingRule>>> {
+    pub fn get_matching_rules(&self, element: &Element) -> Option<Vec<Rc<ParsingRule>>> {
       let mut all_rules: Vec<Rc<ParsingRule>> = Vec::with_capacity(16);
 
       for (_, rules) in &self.matching_rules {
         for rule in rules {
-          if rule.tag == "*" || rule.tag == element_name {
-            all_rules.push(rule.clone());
+          if rule.tag_name != "*" && rule.tag_name != element.tag_name {
+            continue;
           }
+
+          let mut all_req_attributes_match = true;
+
+          for required_attribute in &rule.required_attributes {
+            if &required_attribute.attr_name != "*" {
+              let element_attr_value_maybe = element.attributes.get(&required_attribute.attr_name);
+
+              let element_attr_value = if let Option::None = element_attr_value_maybe {
+                all_req_attributes_match = false;
+                break;
+              } else {
+                element_attr_value_maybe.unwrap()
+              };
+
+              let required_attr_value = if let Option::None = required_attribute.attr_value {
+                continue;
+              } else {
+                required_attribute.attr_value.as_ref().unwrap()
+              };
+
+              if element_attr_value != required_attr_value {
+                all_req_attributes_match = false;
+                break;
+              }
+            }
+          }
+
+          if !all_req_attributes_match {
+            continue;
+          }
+
+          all_rules.push(rule.clone());
         }
       }
 
@@ -220,8 +304,7 @@ pub mod comment_parser {
       out_text_parts: &mut Vec<TextPart>,
       out_spannables: &mut Vec<Spannable>
     ) -> bool {
-      let element_name = element.name.as_str();
-      let rules_maybe = self.get_matching_rules(element_name);
+      let rules_maybe = self.get_matching_rules(element);
 
       let rules = match rules_maybe {
         None => return false,
@@ -254,8 +337,7 @@ pub mod comment_parser {
       prev_out_spannables_index: usize,
       out_spannables: &mut Vec<Spannable>
     ) {
-      let element_name = element.name.as_str();
-      let rules_maybe = self.get_matching_rules(element_name);
+      let rules_maybe = self.get_matching_rules(element);
 
       let rules = match rules_maybe {
         None => return,
