@@ -34,11 +34,25 @@ mod test_main {
     let post_comment_parsed = post_parser.parse_post(&post_raw).post_comment_parsed;
     let spannables = post_comment_parsed.spannables;
 
-    assert_eq!(expected_parsed_comment, post_comment_parsed.parsed_text.as_str());
+    let parsed_text = post_comment_parsed.parsed_text.as_str();
+
+    assert_eq!(expected_parsed_comment, parsed_text);
     assert_eq!(expected_spannables.len(), spannables.len());
 
     for index in 0 .. spannables.len() {
-      assert_eq!(expected_spannables[index], spannables[index]);
+      let expected_spannable = &expected_spannables[index];
+      let actual_spannable = &spannables[index];
+
+      assert_eq!(expected_spannable, actual_spannable);
+
+      assert!(actual_spannable.start >= 0, "start={}", actual_spannable.start);
+
+      assert!(
+        (actual_spannable.start + actual_spannable.len) <= parsed_text.bytes().len(),
+        "end={}, chars_count={}",
+        actual_spannable.start + actual_spannable.len,
+        parsed_text.chars().count()
+      );
     }
   }
 
@@ -662,6 +676,101 @@ what?";
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
+  #[test]
+  fn post_parser_test_spannable_out_of_parsed_text_bounds() {
+    let post_comment_raw = "#4137 ecclesia edition<br><br>Previous: <a href=\"/vg/thread/334945645#p334945645\" class=\"quotelink\">&gt;&gt;334945645</a>\
+    <br><br><span class=\"quote\">&gt;Recommended Simulators</span><br>Automated:<br>●EDOPro (PC/Android). Download: https://projectignis.github.io/down<wbr>load.html<br>Manual:<br>\
+    ●Duelingbook (online). Visit: https://www.duelingbook.com<br>Hosts, use the tag “/dng/” and the password “vidya”; on EDOPro, specify the server.<br><br>\
+    <span class=\"quote\">&gt;Useful Links</span><br>Rulebook: http://www.yugioh-card.com/en/ruleb<wbr>ook/SD_RuleBook_EN_V10.pdf<br>\
+    Wiki: https://yugipedia.com/wiki/Yugipedi<wbr>a<br>Probability Calculator: http://yugioh.party<br>Stock Market: http://yugiohprices.com<br>Database: https://www.db.yugioh-card.com<br><br>\
+    <span class=\"quote\">&gt;Decklists</span><br>OCG: https://www.izazin.com/taikai/resul<wbr>ts?tag=遊戯王<br>TCG: http://yugiohtopdecks.com/decklists<wbr><br><br><span class=\"quote\">&gt;News</span>\
+    <br>JP: http://blog.livedoor.jp/maxut<br>EN: https://ygorganization.com<br><br><span class=\"quote\">&gt;Upcoming Releases</span><br>OCG:<br>●Structure Deck: Cyber Style’s Successor (May 15)<br>\
+    ●Duelist Pack: Gale Duelist Edition (May 22)<br>●Animation Chronicle 2021 (Jun 12)<br>●Structure Deck: Overlay Universe (Jun 26)<br>●Duel Royale Deck Set EX (Jul 10)<br>\
+    ●Burst of Destiny (Jul 17)<br>●Structure Deck R: Lost Sanctuary (Aug 7)<br>TCG:<br>●Lightning Overdrive (Jun 4)<br>●OTS Tournament Pack 16 (Jun 10)<br>●Egyptian God Deck (Jun 11)<br>\
+    ●King&#039;s Court (Jun 25)<br>●Legendary Duelists: Synchro Storm (Jul 14)<br>●Structure Deck: Cyber Strike (Jul 30)<br>●Dawn of Majesty (Aug 13)<br>\
+    ●2021 Tin of Ancient Battles (Sep 17)<br><br><span class=\"quote\">&gt;Upcoming /dng/ Events</span><br>●/dng/ Cup (May 15, 1700 UTC): https://challonge.com/dngcup8<br>\
+    ●Fisherman Locals (Jun 5, 1700 UTC): https://challonge.com/dngfisherman<br>●HAT Format (June 26, 1730 UTC): https://challonge.com/dngHAT<br>\
+    ●/dng/ Battle City (June 27, 1600 UTC): https://challonge.com/dngbattlecity<wbr>";
+
+    let expected_parsed_comment = "#4137 ecclesia edition\n\n\
+    Previous: >>334945645 →\n\n\
+    >Recommended Simulators\n\
+    Automated:\n\
+    ●EDOPro (PC/Android). Download: https://projectignis.github.io/download.html\n\
+    Manual:\n\
+    ●Duelingbook (online). Visit: https://www.duelingbook.com\n\
+    Hosts, use the tag “/dng/” and the password “vidya”; on EDOPro, specify the server.\n\n\
+    >Useful Links\n\
+    Rulebook: http://www.yugioh-card.com/en/rulebook/SD_RuleBook_EN_V10.pdf\n\
+    Wiki: https://yugipedia.com/wiki/Yugipedia\n\
+    Probability Calculator: http://yugioh.party\n\
+    Stock Market: http://yugiohprices.com\n\
+    Database: https://www.db.yugioh-card.com\n\n\
+    >Decklists\n\
+    OCG: https://www.izazin.com/taikai/results?tag=遊戯王\n\
+    TCG: http://yugiohtopdecks.com/decklists\n\n\
+    >News\n\
+    JP: http://blog.livedoor.jp/maxut\n\
+    EN: https://ygorganization.com\n\n\
+    >Upcoming Releases\n\
+    OCG:\n\
+    ●Structure Deck: Cyber Style’s Successor (May 15)\n\
+    ●Duelist Pack: Gale Duelist Edition (May 22)\n\
+    ●Animation Chronicle 2021 (Jun 12)\n\
+    ●Structure Deck: Overlay Universe (Jun 26)\n\
+    ●Duel Royale Deck Set EX (Jul 10)\n\
+    ●Burst of Destiny (Jul 17)\n\
+    ●Structure Deck R: Lost Sanctuary (Aug 7)\n\
+    TCG:\n\
+    ●Lightning Overdrive (Jun 4)\n\
+    ●OTS Tournament Pack 16 (Jun 10)\n\
+    ●Egyptian God Deck (Jun 11)\n\
+    ●King\'s Court (Jun 25)\n\
+    ●Legendary Duelists: Synchro Storm (Jul 14)\n\
+    ●Structure Deck: Cyber Strike (Jul 30)\n\
+    ●Dawn of Majesty (Aug 13)\n\
+    ●2021 Tin of Ancient Battles (Sep 17)\n\n\
+    >Upcoming /dng/ Events\n\
+    ●/dng/ Cup (May 15, 1700 UTC): https://challonge.com/dngcup8\n\
+    ●Fisherman Locals (Jun 5, 1700 UTC): https://challonge.com/dngfisherman\n\
+    ●HAT Format (June 26, 1730 UTC): https://challonge.com/dngHAT\n\
+    ●/dng/ Battle City (June 27, 1600 UTC): https://challonge.com/dngbattlecity";
+
+    let expected_spannables = vec![
+      Spannable { start: 34, len: 13, spannable_data: SpannableData::Link(PostLink::ThreadLink { board_code: "vg".to_string(), thread_no: 334945645, post_no: 334945645 }) },
+      Spannable { start: 48, len: 24, spannable_data: SpannableData::GreenText },
+      Spannable { start: 120, len: 44, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://projectignis.github.io/download.html".to_string() }) },
+      Spannable { start: 205, len: 27, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://www.duelingbook.com".to_string() }) },
+      Spannable { start: 311, len: 14, spannable_data: SpannableData::GreenText },
+      Spannable { start: 350, len: 61, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "http://www.yugioh-card.com/en/rulebook/SD_RuleBook_EN_V10.pdf".to_string() }) },
+      Spannable { start: 418, len: 36, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://yugipedia.com/wiki/Yugipedia".to_string() }) },
+      Spannable { start: 479, len: 19, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "http://yugioh.party".to_string() }) },
+      Spannable { start: 513, len: 23, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "http://yugiohprices.com".to_string() }) },
+      Spannable { start: 547, len: 30, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://www.db.yugioh-card.com".to_string() }) },
+      Spannable { start: 564, len: 11, spannable_data: SpannableData::GreenText },
+      Spannable { start: 595, len: 42, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://www.izazin.com/taikai/results?tag=".to_string() }) },
+      Spannable { start: 652, len: 35, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "http://yugiohtopdecks.com/decklists".to_string() }) },
+      Spannable { start: 668, len: 6, spannable_data: SpannableData::GreenText },
+      Spannable { start: 699, len: 29, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "http://blog.livedoor.jp/maxut".to_string() }) },
+      Spannable { start: 733, len: 26, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://ygorganization.com".to_string() }) },
+      Spannable { start: 740, len: 19, spannable_data: SpannableData::GreenText },
+      Spannable { start: 1306, len: 23, spannable_data: SpannableData::GreenText },
+      Spannable { start: 1415, len: 29, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://challonge.com/dngcup8".to_string() }) },
+      Spannable { start: 1484, len: 34, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://challonge.com/dngfisherman".to_string() }) },
+      Spannable { start: 1554, len: 28, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://challonge.com/dngHAT".to_string() }) },
+      Spannable { start: 1625, len: 35, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://challonge.com/dngbattlecity".to_string() }) },
+    ];
+
+    let post_parser_context = create_post_parser_context(
+      1235,
+      set_of!(),
+      set_of!()
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  // TODO: Archive links (all supported archives)
   // TODO: Unicode text (Russian/some other?)
   // TODO: parse links like this one (https://boards.4chan.org/search#/cyoag) as global search shortcuts
 }

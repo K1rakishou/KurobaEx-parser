@@ -7,7 +7,7 @@ pub mod post_parser {
   use crate::util::helpers::{SumBy, MapJoin};
 
   lazy_static! {
-    static ref CRUDE_LINK_PATTERN: Regex = Regex::new(r"(https?://(?:[^\s]+).)").unwrap();
+    static ref CRUDE_LINK_PATTERN: Regex = Regex::new(r"https?://[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)").unwrap();
   }
 
   impl PostParserContext {
@@ -224,8 +224,7 @@ pub mod post_parser {
       let mut capture_locations = CRUDE_LINK_PATTERN.capture_locations();
       let mut offset: usize = 0;
 
-      let bytes = text.as_bytes();
-      let total_text_length = out_text_parts.iter().sum_by(&|string| string.characters_count as i32) as usize;
+      let total_text_length = out_text_parts.iter().sum_by(&|string| string.text.as_bytes().len() as i32) as usize;
 
       loop {
         CRUDE_LINK_PATTERN.captures_read_at(&mut capture_locations, text, offset);
@@ -240,15 +239,12 @@ pub mod post_parser {
           break;
         }
 
-        let left_pointer = self.look_for_first_white_space_to_the_left(&bytes, capture_start);
-        let right_pointer = self.look_for_first_white_space_to_the_right(&bytes, capture_end - 1);
-
-        let actual_link = String::from(&text[left_pointer..right_pointer]);
+        let actual_link = String::from(&text[capture_start..capture_end]);
 
         let link_spannable = Spannable {
-          start: total_text_length + left_pointer,
-          len: (right_pointer - left_pointer),
-          spannable_data: SpannableData::Link(PostLink::UrlLink { link: actual_link })
+          start: total_text_length + capture_start,
+          len: (capture_end - capture_start),
+          spannable_data: SpannableData::Link(PostLink::UrlLink { link: actual_link.to_string() })
         };
 
         if link_spannable.is_valid() {
@@ -257,80 +253,6 @@ pub mod post_parser {
 
         offset = capture_end;
       }
-    }
-
-    fn look_for_first_white_space_to_the_right(&self, bytes: &[u8], capture_end: usize) -> usize {
-      let mut right_pointer = capture_end;
-      let bytes_length = bytes.len();
-
-      if right_pointer == bytes_length {
-        let char_maybe = bytes.get(right_pointer);
-        if char_maybe.is_some() {
-          let char = char_maybe.unwrap();
-          if char.is_ascii_whitespace() {
-            right_pointer = right_pointer.checked_sub(1).unwrap();
-          }
-        }
-
-        return right_pointer;
-      }
-
-      while right_pointer < bytes_length {
-        let char_maybe = bytes.get(right_pointer);
-        if char_maybe.is_none() {
-          break
-        }
-
-        let char = char_maybe.unwrap();
-        if char.is_ascii_whitespace() {
-          break
-        }
-
-        if right_pointer == bytes_length {
-          break;
-        }
-
-        right_pointer = right_pointer.checked_add(1).unwrap_or(bytes_length);
-      }
-
-      return right_pointer
-    }
-
-    fn look_for_first_white_space_to_the_left(&self, bytes: &[u8], capture_start: usize) -> usize {
-      let mut left_pointer = capture_start;
-
-      if left_pointer == 0 {
-        let char_maybe = bytes.get(left_pointer);
-        if char_maybe.is_some() {
-          let char = char_maybe.unwrap();
-          if char.is_ascii_whitespace() {
-            left_pointer = left_pointer.checked_add(1).unwrap();
-          }
-        }
-
-        return left_pointer;
-      }
-
-      while left_pointer > 0 {
-        let char_maybe = bytes.get(left_pointer);
-        if char_maybe.is_none() {
-          break
-        }
-
-        let char = char_maybe.unwrap();
-        if char.is_ascii_whitespace() {
-          left_pointer = left_pointer.checked_add(1).unwrap();
-          break
-        }
-
-        if left_pointer == 0 {
-          break;
-        }
-
-        left_pointer = left_pointer.checked_sub(1).unwrap_or(0);
-      }
-
-      return left_pointer;
     }
 
   }
