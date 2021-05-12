@@ -4,6 +4,7 @@ use regex::Regex;
 lazy_static! {
   static ref THEME_JSON_KEYS: Vec<&'static str> = vec!["\"name\"", "\"is_light_theme\"", "\"light_nav_bar\"", "\"light_status_bar\"", "\"accent_color\"", "\"primary_color\"", "\"back_color\""];
   static ref THEME_NAME_PATTERN: Regex = Regex::new(r#""name"\s*:\s*"(.+)""#).unwrap();
+  static ref THEME_TYPE_PATTERN: Regex = Regex::new(r#""is_light_theme"\s*:\s*(true|false)"#).unwrap();
 }
 
 pub fn detect_and_extract_theme_json(total_text: &str, out_spannables: &mut Vec<Spannable>) {
@@ -21,18 +22,43 @@ pub fn detect_and_extract_theme_json(total_text: &str, out_spannables: &mut Vec<
       continue;
     }
 
+    let is_light_theme_maybe = try_figure_out_is_theme_light(&total_text[json_open_bracket_index..json_end_bracket_index]);
+    if is_light_theme_maybe.is_none() {
+      continue;
+    }
+
     let theme_name = try_extract_theme_name(&total_text[json_open_bracket_index..json_end_bracket_index]);
+    let is_light_theme = is_light_theme_maybe.unwrap();
 
     let spannable = Spannable {
       start: json_open_bracket_index,
       len: json_end_bracket_index - json_open_bracket_index,
-      spannable_data: SpannableData::ThemeJson { theme_name }
+      spannable_data: SpannableData::ThemeJson { theme_name, is_light_theme }
     };
 
     if spannable.is_valid() {
       out_spannables.push(spannable);
     }
   }
+}
+
+fn try_figure_out_is_theme_light(theme_json: &str) -> Option<bool> {
+  let theme_type_captures_maybe = THEME_TYPE_PATTERN.captures(theme_json);
+  if theme_type_captures_maybe.is_none() {
+    return Option::None
+  }
+
+  let theme_type_match_maybe = theme_type_captures_maybe.unwrap().get(1);
+  if theme_type_match_maybe.is_none() {
+    return Option::None
+  }
+
+  let parse_result_result = theme_type_match_maybe.unwrap().as_str().parse::<bool>();
+  if let Result::Err { .. } = parse_result_result {
+    return Option::None;
+  }
+
+  return Option::Some(parse_result_result.unwrap());
 }
 
 fn try_extract_theme_name(theme_json: &str) -> String {

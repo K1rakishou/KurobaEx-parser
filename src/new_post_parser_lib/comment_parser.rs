@@ -83,8 +83,8 @@ pub mod comment_parser {
         SpannableData::Monospace => {
           write!(f, "Monospace()")
         }
-        SpannableData::ThemeJson { theme_name } => {
-          write!(f, "ThemeJson(theme_name: {})", theme_name)
+        SpannableData::ThemeJson { theme_name, is_light_theme } => {
+          write!(f, "ThemeJson(theme_name: {}, is_light_theme: {})", theme_name, is_light_theme)
         }
       }
     }
