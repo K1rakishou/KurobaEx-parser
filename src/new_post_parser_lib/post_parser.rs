@@ -5,9 +5,10 @@ pub mod post_parser {
   use std::fmt;
   use regex::Regex;
   use crate::util::helpers::{SumBy, MapJoin};
+  use crate::util::theme_json_extractor::detect_and_extract_theme_json;
 
   lazy_static! {
-    static ref LINK_PATTERN: Regex = Regex::new(r"https?://[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-\w0-9()@:%_\+.~#?&//=]*)").unwrap();
+    static ref LINK_PATTERN: Regex = Regex::new(r"https?://[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-\w0-9()@:%_\+.~#?&//=!]*)").unwrap();
   }
 
   impl PostParserContext {
@@ -131,10 +132,13 @@ pub mod post_parser {
       self.process_element(post_raw, &html_parsing_result.unwrap(), &mut out_text_parts, &mut out_spannables);
 
       let total_size = out_text_parts.iter().sum_by(&|text_part| text_part.characters_count as i32) as usize;
+      let total_text = Box::new(out_text_parts.iter().map_join_cap(total_size, "", &|text_part| text_part.text.as_str()));
+
+      detect_and_extract_theme_json(&total_text, &mut out_spannables);
 
       return ParsedSpannableText::new(
         comment_raw.as_str(),
-        Box::new(out_text_parts.iter().map_join_cap(total_size, "", &|text_part| text_part.text.as_str())),
+        total_text,
         Box::new(out_spannables)
       );
     }

@@ -806,8 +806,75 @@ what?";
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
+  #[test]
+  fn post_parser_test_app_theme_json() {
+    let post_comment_raw = "{<br> &quot;name&quot;: &quot;Kuromakaba Light&quot;,<br> &quot;is_light_theme&quot;: true,<br> \
+    &quot;light_nav_bar&quot;: true,<br> &quot;light_status_bar&quot;: true,<br> &quot;accent_color&quot;: &quot;#f3630e&quot;,<br> \
+    &quot;primary_color&quot;: &quot;#000000&quot;,<br> &quot;back_color&quot;: &quot;#e2e2e2&quot;,<br> \
+    &quot;post_details_color&quot;: &quot;#6a6a6a&quot;,<br> &quot;post_highlight_quote_color&quot;: &quot;#f3630e&quot;,<br> \
+    &quot;post_highlighted_color&quot;: &quot;#f1f1f1&quot;,<br> &quot;post_inline_quote_color&quot;: &quot;#899918&quot;,<br> \
+    &quot;post_link_color&quot;: &quot;#f3630e&quot;,<br> &quot;post_name_color&quot;: &quot;#6a6a6a&quot;,<br> \
+    &quot;post_quote_color&quot;: &quot;#f3630e&quot;,<br> &quot;post_saved_reply_color&quot;: &quot;#f1f1f1&quot;,<br> \
+    &quot;post_spoiler_color&quot;: &quot;#c6c6c6&quot;,<br> &quot;post_spoiler_reveal_text_color&quot;: &quot;#303030&quot;,<br> \
+    &quot;post_subject_color&quot;: &quot;#134b6b&quot;,<br> &quot;post_unseen_label_color&quot;: &quot;#ea8162&quot;,<br> \
+    &quot;text_color_hint&quot;: &quot;#6a6a6a&quot;,<br> &quot;text_color_primary&quot;: &quot;#474747&quot;,<br> \
+    &quot;text_color_secondary&quot;: &quot;#6a6a6a&quot;,<br> &quot;bookmark_counter_has_replies_color<wbr>&quot;: &quot;#f3630e&quot;,<br> \
+    &quot;bookmark_counter_normal_color&quot;: &quot;#474747&quot;,<br> &quot;bookmark_counter_not_watching_colo<wbr>r&quot;: &quot;#6a6a6a&quot;,<br> \
+    &quot;divider_color&quot;: &quot;#c6c6c6&quot;,<br> &quot;error_color&quot;: &quot;#ff0000&quot;<br>}";
+
+    let expected_parsed_comment = "{\n \"name\": \"Kuromakaba Light\",\n \"is_light_theme\": true,\n \"light_nav_bar\": true,\n \"light_status_bar\": true,\n \"accent_color\": \"#f3630e\",\n \"primary_color\": \"#000000\",\n \"back_color\": \"#e2e2e2\",\n \"post_details_color\": \"#6a6a6a\",\n \"post_highlight_quote_color\": \"#f3630e\",\n \"post_highlighted_color\": \"#f1f1f1\",\n \"post_inline_quote_color\": \"#899918\",\n \"post_link_color\": \"#f3630e\",\n \"post_name_color\": \"#6a6a6a\",\n \"post_quote_color\": \"#f3630e\",\n \"post_saved_reply_color\": \"#f1f1f1\",\n \"post_spoiler_color\": \"#c6c6c6\",\n \"post_spoiler_reveal_text_color\": \"#303030\",\n \"post_subject_color\": \"#134b6b\",\n \"post_unseen_label_color\": \"#ea8162\",\n \"text_color_hint\": \"#6a6a6a\",\n \"text_color_primary\": \"#474747\",\n \"text_color_secondary\": \"#6a6a6a\",\n \"bookmark_counter_has_replies_color\": \"#f3630e\",\n \"bookmark_counter_normal_color\": \"#474747\",\n \"bookmark_counter_not_watching_color\": \"#6a6a6a\",\n \"divider_color\": \"#c6c6c6\",\n \"error_color\": \"#ff0000\"\n}";
+
+    let expected_spannables = vec![
+      Spannable { start: 0, len: 931, spannable_data: SpannableData::ThemeJson },
+    ];
+
+    let post_parser_context = create_post_parser_context(
+      1235,
+      set_of!(),
+      set_of!()
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  #[test]
+  fn post_parser_test_app_theme_json_inside_code_tags() {
+    let post_comment_raw = "<pre class=\"prettyprint\">{<br>&quot;name&quot;: &quot;Kuromakaba Light&quot;,<br>&quot;is_light_theme&quot;: true,<br>\
+    &quot;light_nav_bar&quot;: true,<br>&quot;light_status_bar&quot;: true,<br>&quot;accent_color&quot;: &quot;#f3630e&quot;,<br>&quot;primary_color&quot;: &quot;#000000&quot;,<br>\
+    &quot;back_color&quot;: &quot;#e2e2e2&quot;,<br>&quot;post_details_color&quot;: &quot;#6a6a6a&quot;,<br>&quot;post_highlight_quote_color&quot;: &quot;#f3630e&quot;,<br>\
+    &quot;post_highlighted_color&quot;: &quot;#f1f1f1&quot;,<br>&quot;post_inline_quote_color&quot;: &quot;#899918&quot;,<br>&quot;post_link_color&quot;: &quot;#f3630e&quot;,<br>\
+    &quot;post_name_color&quot;: &quot;#6a6a6a&quot;,<br>&quot;post_quote_color&quot;: &quot;#f3630e&quot;,<br>&quot;post_saved_reply_color&quot;: &quot;#f1f1f1&quot;,<br>\
+    &quot;post_spoiler_color&quot;: &quot;#c6c6c6&quot;,<br>&quot;post_spoiler_reveal_text_color&quot;: &quot;#303030&quot;,<br>&quot;post_subject_color&quot;: &quot;#134b6b&quot;,<br>\
+    &quot;post_unseen_label_color&quot;: &quot;#ea8162&quot;,<br>&quot;text_color_hint&quot;: &quot;#6a6a6a&quot;,<br>&quot;text_color_primary&quot;: &quot;#474747&quot;,<br>\
+    &quot;text_color_secondary&quot;: &quot;#6a6a6a&quot;,<br>&quot;bookmark_counter_has_replies_color<wbr>&quot;: &quot;#f3630e&quot;,<br>\
+    &quot;bookmark_counter_normal_color&quot;: &quot;#474747&quot;,<br>&quot;bookmark_counter_not_watching_colo<wbr>r&quot;: &quot;#6a6a6a&quot;,<br>\
+    &quot;divider_color&quot;: &quot;#c6c6c6&quot;,<br>&quot;error_color&quot;: &quot;#ff0000&quot;<br>}</pre>";
+
+    let expected_parsed_comment = "{\n\"name\": \"Kuromakaba Light\",\n\"is_light_theme\": true,\n\"light_nav_bar\": true,\n\"light_status_bar\": true,\n\"accent_color\": \"#f3630e\",\n\"primary_color\": \"#000000\",\n\"back_color\": \"#e2e2e2\",\n\"post_details_color\": \"#6a6a6a\",\n\"post_highlight_quote_color\": \"#f3630e\",\n\"post_highlighted_color\": \"#f1f1f1\",\n\"post_inline_quote_color\": \"#899918\",\n\"post_link_color\": \"#f3630e\",\n\"post_name_color\": \"#6a6a6a\",\n\"post_quote_color\": \"#f3630e\",\n\"post_saved_reply_color\": \"#f1f1f1\",\n\"post_spoiler_color\": \"#c6c6c6\",\n\"post_spoiler_reveal_text_color\": \"#303030\",\n\"post_subject_color\": \"#134b6b\",\n\"post_unseen_label_color\": \"#ea8162\",\n\"text_color_hint\": \"#6a6a6a\",\n\"text_color_primary\": \"#474747\",\n\"text_color_secondary\": \"#6a6a6a\",\n\"bookmark_counter_has_replies_color\": \"#f3630e\",\n\"bookmark_counter_normal_color\": \"#474747\",\n\"bookmark_counter_not_watching_color\": \"#6a6a6a\",\n\"divider_color\": \"#c6c6c6\",\n\"error_color\": \"#ff0000\"\n}";
+
+    let expected_spannables = vec![
+      Spannable { start: 0, len: 904, spannable_data: SpannableData::Monospace },
+      Spannable { start: 0, len: 904, spannable_data: SpannableData::ThemeJson },
+    ];
+
+    let post_parser_context = create_post_parser_context(
+      1235,
+      set_of!(),
+      set_of!()
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
   // A general for the discussion of all non-x86 ISAs (RISC-V, SPARC, m68k, PA-RISC, MIPS, Itanium, PowerPC, etc.) retro and modern.<br><br>M68K:<br>http://m68k.info/<br>http://www.apollo-core.com/index.ht<wbr>m<br>https://thebrewingacademy.com/colle<wbr>ctions/atari-st-ste-mega<br>http://www.easy68k.com/paulrsm/<br>https://github.com/grovdata/Amiga_S<wbr>ources<br><br>MIPS:<br>https://www.embeddedplanet.com/prod<wbr>ucts_list/cavium-octeon-iii-develop<wbr>ment-board/<br>https://elinux.org/MIPS_Creator_CI2<wbr>0<br>http://www.sgistuff.net/software/ir<wbr>ixintro/index.html<br>https://sgi.neocities.org/<br><br>SuperH:<br>https://www.apnet.co.jp/product/ms1<wbr>04/ms104-sh4.html<br><br>Z80:<br>http://www.pc1500.com/<br>https://www.kickstarter.com/project<wbr>s/spectrumnext/zx-spectrum-next-iss<wbr>ue-2<br><br>6502:<br>http://6502.org/<br>https://gist.github.com/jblang/a397<wbr>48b3b0d3ceba05cbb92d0c56b3b2<br>https://www.commodorecomputerclub.c<wbr>om/resources/<br>http://home-2002.code-cop.org/c64/<br><br>RISC-V:<br>https://beagleboard.org/beaglev<br>https://bellard.org/tinyemu/<br>https://www.sifive.com/boards/hifiv<wbr>e-unmatched<br><br>SPARC:<br>https://sparc.org/<br><br>POWER/PowerPC:<br>https://www.nxp.com/design/qoriq-de<wbr>veloper-resources/qoriq-t2080-devel<wbr>opment-board:T2080RDB<br>https://www.powerpc-notebook.org<br>https://raptorcs.com/content/BK1SD1<wbr>/intro.html<br><br>VAX:<br>https://github.com/simh/simh<br>http://oboguev.net/vax_mp/<br><br>Alpha:<br>https://github.com/lenticularis39/a<wbr>xpbox<br><br>Multi-system FPGA:<br>https://github.com/mist-devel/mist-<wbr>board/wiki<br>https://github.com/MiSTer-devel/Mai<wbr>n_MiSTer/wiki<br><br>Misc.:<br>http://anycpu.org<br>https://opencores.org/<br><br>More:<br>https://wiki.installgentoo.com/wiki<wbr>//aig/_Alternative_ISA_General<br>https://mega.nz/file/0PplHSyL#eK_f2<wbr>ZSc2f0E8_RLUGz9nVn40myXhyiRDMU_FhgO<wbr>2wk<br><br>Previous thread: <a href=\"/g/thread/81521490#p81521490\" class=\"quotelink\">&gt;&gt;81521490</a>
 
+  // TODO: some MEGA links that we are not parsing correctly + another kind of search links
+  // Mahou Shoujo Edition<br><br>Previous Thread: <a href=\"/vg/thread/335153273#p335153273\" class=\"quotelink\">&gt;&gt;335153273</a><br><br>2D Hentai games (Hentai RPG, Violated Heroine, H-Action Games) General /hgg2d/<br>For searching purposes: /vhg/<br><br>UNLESS EXPLICITLY STATED ASSUME THERE&#039;S NO TRANSLATION AND PLEASE READ THE PASTEBINS BEFORE ASKING QUESTIONS<br><br><span class=\"quote\">&gt;NEWCOMERS GUIDE: (PLEASE READ BEFORE POSTING)</span><br>https://ipfs.infura.io/ipfs/QmYspPo<wbr>kmbzYRozmGMWEU9nNUVqCbQZUNPbBWfFSgB<wbr>gD7W<br>UPDATE YOUR ARCHIVER BEFORE COMPLAINING ABOUT CORRUPT DOWNLOADS<br><br><span class=\"quote\">&gt;/hgg2d/ Game Archive - IPFS Edition</span><br>https://ipfs.io/ipns/k2k4r8l7mxpi57<wbr>sotykoy5f5ucakg0dr0ib0avmyjhwmofkvp<wbr>fhfd510/bin.html<br><br><span class=\"quote\">&gt;Recommended Games (outdated):</span><br><span class=\"quote\">&gt;New Recommended Games Bin:</span><br><span class=\"quote\">&gt;/hgg2d/ Gotw Catalog:</span><br>Refer to the newcomers guide link<br><br>IF YOU&#039;RE PLANNING TO PLAY RPGMAKER GAMES, MAKE SURE YOU HAVE THE RIGHT RTP FOR THEM DON&#039;T BOTHER THE THREAD WITH RGSSWHATEVER.dll AND MISSING FILES ERRORS<br>https://tkool.jp/products/rtp.html<br><br><span class=\"quote\">&gt;Nifty translation tool by Anon:</span><br>https://www.mediafire.com/file/ov74<wbr>ltf4cgpji59/japReader-1.2.zip/file<br><br>HOW TO PLAY THESE GAMES IN LINUX<br>https://pastebin.com/21Yi6vnt<br><br>RGSS DECRYPTER FOR APPLYING PATCHES<br>http://www50.zippyshare.com/v/17MCS<wbr>5Bb/file.html<br>If this can&#039;t extract some files then try:<br>https://github.com/usagirei/RGSS-De<wbr>cryptor<br><br>RJ CODE QUICKLINK SCRIPT (Updated to include the RE version changes)<br>https://hgg2d.github.io/<br><br>RJ Gallery SCRIPT<br>https://ipfs.infura.io/ipfs/QmX2wWM<wbr>ed1oD5RntcTqBFXCDGX4mGgNKfj1v6pHQtE<wbr>B62K/DL%20Site%20Previewer.html<br><br>DLsite partial interface translation script<br>https://github.com/Zero-G-Sys/DLStr<wbr>ans<br><br>VH Specific<br><span class=\"quote\">&gt;latest VH translation</span><br>https://mega.nz/#F!F9ZyVSLY!6U0Tlvb<wbr>W88UFAynZ3pxJBg<br><span class=\"quote\">&gt;outdated mega</span><br>https://mega.nz/#F!0ChlQYJa!918hNc-<wbr>SzjigT-yBqiaidw<br><br>Installation: http://wiki.anime-sharing.com/hgame<wbr>s/index.php?title=VH<br>FAQ: http://pastebin.com/ZtDHt64k<br><br>Take all discussion of fetishes outside of the context of video games to <a href=\"//boards.4chan.org/h/\" class=\"quotelink\">&gt;&gt;&gt;/h/</a><br>Take all discussion of VNs to <a href=\"//boards.4channel.org/vg/catalog#s=vn%2F\" class=\"quotelink\">&gt;&gt;&gt;/vg/vn/</a> or <a href=\"//boards.4channel.org/vg/catalog#s=hgg%2F\" class=\"quotelink\">&gt;&gt;&gt;/vg/hgg/</a><br><br>Please wait for page 10 before making a new thread
+
+  // TODO: comment with two [code] tags
+  // I have no fucking clue why this works. I fucked up when I was making the form and put the submit/clear button outside.<br>If I try to place them back in the form tag, the new &lt;li&gt; shows up for a split second then disappears.<br><br><pre class=\"prettyprint\">    &lt;div id=&quot;to-do_list&quot;&gt;<br>    &lt;form&gt;<br>      &lt;input type=&quot;text&quot; id=&quot;to-do-item&quot; name=&quot;to-do_item&quot;&gt;<br>    &lt;/form&gt;<br>      &lt;input type=&quot;submit&quot; id=&quot;to-do-submit&quot; value=&quot;Add to list&quot;&gt;<br>      &lt;button id=&quot;clear&quot; onclick=&quot;removed()&quot;&gt;Clear All&lt;/button&gt;<br>    &lt;/div&gt;&lt;!--to-do_list--&gt;<br></pre><br><br><pre class=\"prettyprint\">    &lt;script&gt;<br>      &quot;use strict&quot;;<br>      let to_do_list_ol = document.getElementById(&quot;to-do_list<wbr>-ol&quot;);<br>      let input = document.getElementById(&quot;to-do-item<wbr>&quot;);<br>      let submit = document.getElementById(&quot;to-do-subm<wbr>it&quot;);<br>      submit.onclick = function(){<br>        let li_input = document.createElement(&#039;li&#039;); <br>        li_input.innerHTML = (`${input.value}&lt;button class=&quot;delete&quot; onclick=&quot;removeOne(this)&quot;&gt;Delete&lt;/b<wbr>utton&gt;`);<br>        to_do_list_ol.append(li_input); <br>      };<br><br>      let clear = document.getElementById(&quot;clear&quot;); <br><br>      function removed(){<br>        let li_items = document.querySelectorAll(&#039;li&#039;);<br>          for(let i of li_items){<br>            i.remove(); <br>          }<br>          alert(&#039;removed&#039;);<br>        };<br><br>        function removeOne(obj){ <br>          let li_obj = obj.closest(&#039;li&#039;); <br>          li_obj.remove();<br>        }<br><br>    &lt;/script&gt;<br>  &lt;/body&gt;<br>&lt;/html&gt;<br></pre>
+
+  // TODO: Replace "http" with "https"
   // TODO: Archive links (all supported archives)
   // TODO: Unicode text (Russian/some other?)
   // TODO: parse links like this one (https://boards.4chan.org/search#/cyoag) as global search shortcuts

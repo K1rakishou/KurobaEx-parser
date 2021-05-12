@@ -42,6 +42,7 @@ pub mod util {
   pub mod helpers;
   pub mod color_decoder;
   pub mod style_tag_value_decoder;
+  pub mod theme_json_extractor;
 }
 
 #[derive(Debug)]
@@ -201,7 +202,8 @@ pub enum SpannableData {
   TextForegroundColorRaw { color_hex: String },
   TextBackgroundColorRaw { color_hex: String },
   TextForegroundColorId { color_id: ChanThemeColorId },
-  TextBackgroundColorId { color_id: ChanThemeColorId }
+  TextBackgroundColorId { color_id: ChanThemeColorId },
+  ThemeJson
 }
 
 #[derive(Debug, PartialEq, Clone)]
