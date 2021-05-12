@@ -1,7 +1,9 @@
 use crate::{Spannable, SpannableData};
+use regex::Regex;
 
 lazy_static! {
   static ref THEME_JSON_KEYS: Vec<&'static str> = vec!["\"name\"", "\"is_light_theme\"", "\"light_nav_bar\"", "\"light_status_bar\"", "\"accent_color\"", "\"primary_color\"", "\"back_color\""];
+  static ref THEME_NAME_PATTERN: Regex = Regex::new(r#""name"\s*:\s*"(.+)""#).unwrap();
 }
 
 pub fn detect_and_extract_theme_json(total_text: &str, out_spannables: &mut Vec<Spannable>) {
@@ -19,10 +21,12 @@ pub fn detect_and_extract_theme_json(total_text: &str, out_spannables: &mut Vec<
       continue;
     }
 
+    let theme_name = try_extract_theme_name(&total_text[json_open_bracket_index..json_end_bracket_index]);
+
     let spannable = Spannable {
       start: json_open_bracket_index,
       len: json_end_bracket_index - json_open_bracket_index,
-      spannable_data: SpannableData::ThemeJson
+      spannable_data: SpannableData::ThemeJson { theme_name }
     };
 
     if spannable.is_valid() {
@@ -31,9 +35,23 @@ pub fn detect_and_extract_theme_json(total_text: &str, out_spannables: &mut Vec<
   }
 }
 
-fn is_probably_theme_json(json: &str) -> bool {
+fn try_extract_theme_name(theme_json: &str) -> String {
+  let theme_name_captures_maybe = THEME_NAME_PATTERN.captures(theme_json);
+  if theme_name_captures_maybe.is_none() {
+    return "Unknown theme name".to_string();
+  }
+
+  let theme_name_match_maybe = theme_name_captures_maybe.unwrap().get(1);
+  if theme_name_match_maybe.is_none() {
+    return "Unknown theme name".to_string();
+  }
+
+  return theme_name_match_maybe.unwrap().as_str().to_string();
+}
+
+fn is_probably_theme_json(theme_json: &str) -> bool {
   for json_key in THEME_JSON_KEYS.iter() {
-    if json.find(json_key).is_none() {
+    if theme_json.find(json_key).is_none() {
       return false;
     }
   }

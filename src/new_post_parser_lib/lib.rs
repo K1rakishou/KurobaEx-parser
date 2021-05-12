@@ -203,7 +203,7 @@ pub enum SpannableData {
   TextBackgroundColorRaw { color_hex: String },
   TextForegroundColorId { color_id: ChanThemeColorId },
   TextBackgroundColorId { color_id: ChanThemeColorId },
-  ThemeJson
+  ThemeJson { theme_name: String }
 }
 
 #[derive(Debug, PartialEq, Clone)]

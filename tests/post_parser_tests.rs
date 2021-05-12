@@ -825,7 +825,7 @@ what?";
     let expected_parsed_comment = "{\n \"name\": \"Kuromakaba Light\",\n \"is_light_theme\": true,\n \"light_nav_bar\": true,\n \"light_status_bar\": true,\n \"accent_color\": \"#f3630e\",\n \"primary_color\": \"#000000\",\n \"back_color\": \"#e2e2e2\",\n \"post_details_color\": \"#6a6a6a\",\n \"post_highlight_quote_color\": \"#f3630e\",\n \"post_highlighted_color\": \"#f1f1f1\",\n \"post_inline_quote_color\": \"#899918\",\n \"post_link_color\": \"#f3630e\",\n \"post_name_color\": \"#6a6a6a\",\n \"post_quote_color\": \"#f3630e\",\n \"post_saved_reply_color\": \"#f1f1f1\",\n \"post_spoiler_color\": \"#c6c6c6\",\n \"post_spoiler_reveal_text_color\": \"#303030\",\n \"post_subject_color\": \"#134b6b\",\n \"post_unseen_label_color\": \"#ea8162\",\n \"text_color_hint\": \"#6a6a6a\",\n \"text_color_primary\": \"#474747\",\n \"text_color_secondary\": \"#6a6a6a\",\n \"bookmark_counter_has_replies_color\": \"#f3630e\",\n \"bookmark_counter_normal_color\": \"#474747\",\n \"bookmark_counter_not_watching_color\": \"#6a6a6a\",\n \"divider_color\": \"#c6c6c6\",\n \"error_color\": \"#ff0000\"\n}";
 
     let expected_spannables = vec![
-      Spannable { start: 0, len: 931, spannable_data: SpannableData::ThemeJson },
+      Spannable { start: 0, len: 931, spannable_data: SpannableData::ThemeJson { theme_name: "Kuromakaba Light".to_string() } },
     ];
 
     let post_parser_context = create_post_parser_context(
@@ -854,7 +854,7 @@ what?";
 
     let expected_spannables = vec![
       Spannable { start: 0, len: 904, spannable_data: SpannableData::Monospace },
-      Spannable { start: 0, len: 904, spannable_data: SpannableData::ThemeJson },
+      Spannable { start: 0, len: 904, spannable_data: SpannableData::ThemeJson { theme_name: "Kuromakaba Light".to_string() } },
     ];
 
     let post_parser_context = create_post_parser_context(
