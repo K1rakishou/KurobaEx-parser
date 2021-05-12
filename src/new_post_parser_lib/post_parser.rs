@@ -7,7 +7,7 @@ pub mod post_parser {
   use crate::util::helpers::{SumBy, MapJoin};
 
   lazy_static! {
-    static ref CRUDE_LINK_PATTERN: Regex = Regex::new(r"https?://[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*)").unwrap();
+    static ref LINK_PATTERN: Regex = Regex::new(r"https?://[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-\w0-9()@:%_\+.~#?&//=]*)").unwrap();
   }
 
   impl PostParserContext {
@@ -221,29 +221,42 @@ pub mod post_parser {
     }
 
     pub fn detect_links(&self, out_text_parts: &mut Vec<TextPart>, text: &String, out_spannables: &mut Vec<Spannable>) {
-      let mut capture_locations = CRUDE_LINK_PATTERN.capture_locations();
+      let mut capture_locations = LINK_PATTERN.capture_locations();
       let mut offset: usize = 0;
 
-      let total_text_length = out_text_parts.iter().sum_by(&|string| string.text.as_bytes().len() as i32) as usize;
+      let total_text_chars_count = out_text_parts
+        .iter()
+        .sum_by(&|string| string.characters_count as i32) as usize;
+
+      let text_bytes = text.as_bytes();
 
       loop {
-        CRUDE_LINK_PATTERN.captures_read_at(&mut capture_locations, text, offset);
+        LINK_PATTERN.captures_read_at(&mut capture_locations, text, offset);
 
         let capture_maybe = capture_locations.get(0);
         if capture_maybe.is_none() {
           break;
         }
 
-        let (capture_start, capture_end) = capture_maybe.unwrap();
-        if capture_start >= capture_end || capture_end <= 0 {
+        let (bytes_capture_start, bytes_capture_end) = capture_maybe.unwrap();
+        if bytes_capture_start >= bytes_capture_end || bytes_capture_end <= 0 {
           break;
         }
 
-        let actual_link = String::from(&text[capture_start..capture_end]);
+        let actual_link = String::from_utf8_lossy(&text_bytes[bytes_capture_start..bytes_capture_end]);
+
+        // [bytes_capture_start] and [bytes_capture_end] do not account unicode characters being
+        // present in [text]. If there are then they will be incorrect. To fix that we need to count
+        // the amount of unicode characters between [0..bytes_capture_start] and
+        // [bytes_capture_start..bytes_capture_end]. This is slow and uses memory but I have no idea how to do it
+        // correctly.
+
+        let start = String::from_utf8_lossy(&text.as_bytes()[0..bytes_capture_start]).chars().count();
+        let len = String::from_utf8_lossy(&text.as_bytes()[bytes_capture_start..bytes_capture_end]).chars().count();
 
         let link_spannable = Spannable {
-          start: total_text_length + capture_start,
-          len: (capture_end - capture_start),
+          start: total_text_chars_count + start,
+          len,
           spannable_data: SpannableData::Link(PostLink::UrlLink { link: actual_link.to_string() })
         };
 
@@ -251,7 +264,7 @@ pub mod post_parser {
           out_spannables.push(link_spannable);
         }
 
-        offset = capture_end;
+        offset = bytes_capture_end;
       }
     }
 

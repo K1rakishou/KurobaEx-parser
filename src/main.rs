@@ -4,7 +4,7 @@ use std::collections::HashSet;
 use new_post_parser_lib::{ThreadRaw, PostRaw, set_of, PostParserContext, PostParser};
 
 fn main() {
-  let post_comment_raw = "<span class=\"abbr\">[EXIF data available. Click <a href=\"javascript:void(0)\" onclick=\"toggle('exif1620356074086')\">here</a> to show/hide.]</span>";
+  let post_comment_raw = "●/dng/ Battle City (June 27, 1600 UTC): https://challonge.com/dngbattlecity";
 
   let thread_raw = ThreadRaw {
     posts: vec![

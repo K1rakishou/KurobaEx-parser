@@ -47,16 +47,19 @@ pub mod util {
 #[derive(Debug)]
 pub struct TextPart {
   text: String,
-  characters_count: usize
+  characters_count: usize,
+  bytes_count: usize
 }
 
 impl TextPart {
   fn new(text: String) -> TextPart {
     let characters_count = text.chars().count();
+    let bytes_count = text.len();
 
     return TextPart {
       text,
-      characters_count
+      characters_count,
+      bytes_count
     };
   }
 }
@@ -131,7 +134,9 @@ pub struct ParsedSpannableText {
 
 #[derive(Debug, PartialEq)]
 pub struct Spannable {
+  // unicode characters (not u8!)
   pub start: usize,
+  // unicode characters (not u8!)
   pub len: usize,
   pub spannable_data: SpannableData
 }

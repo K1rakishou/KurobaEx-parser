@@ -48,7 +48,7 @@ mod test_main {
       assert!(actual_spannable.start >= 0, "start={}", actual_spannable.start);
 
       assert!(
-        (actual_spannable.start + actual_spannable.len) <= parsed_text.bytes().len(),
+        (actual_spannable.start + actual_spannable.len) <= parsed_text.chars().count(),
         "end={}, chars_count={}",
         actual_spannable.start + actual_spannable.len,
         parsed_text.chars().count()
@@ -739,26 +739,26 @@ what?";
     let expected_spannables = vec![
       Spannable { start: 34, len: 13, spannable_data: SpannableData::Link(PostLink::ThreadLink { board_code: "vg".to_string(), thread_no: 334945645, post_no: 334945645 }) },
       Spannable { start: 48, len: 24, spannable_data: SpannableData::GreenText },
-      Spannable { start: 120, len: 44, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://projectignis.github.io/download.html".to_string() }) },
-      Spannable { start: 205, len: 27, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://www.duelingbook.com".to_string() }) },
+      Spannable { start: 116, len: 44, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://projectignis.github.io/download.html".to_string() }) },
+      Spannable { start: 199, len: 27, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://www.duelingbook.com".to_string() }) },
       Spannable { start: 311, len: 14, spannable_data: SpannableData::GreenText },
-      Spannable { start: 350, len: 61, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "http://www.yugioh-card.com/en/rulebook/SD_RuleBook_EN_V10.pdf".to_string() }) },
-      Spannable { start: 418, len: 36, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://yugipedia.com/wiki/Yugipedia".to_string() }) },
-      Spannable { start: 479, len: 19, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "http://yugioh.party".to_string() }) },
-      Spannable { start: 513, len: 23, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "http://yugiohprices.com".to_string() }) },
-      Spannable { start: 547, len: 30, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://www.db.yugioh-card.com".to_string() }) },
+      Spannable { start: 336, len: 61, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "http://www.yugioh-card.com/en/rulebook/SD_RuleBook_EN_V10.pdf".to_string() }) },
+      Spannable { start: 404, len: 36, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://yugipedia.com/wiki/Yugipedia".to_string() }) },
+      Spannable { start: 465, len: 19, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "http://yugioh.party".to_string() }) },
+      Spannable { start: 499, len: 23, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "http://yugiohprices.com".to_string() }) },
+      Spannable { start: 533, len: 30, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://www.db.yugioh-card.com".to_string() }) },
       Spannable { start: 564, len: 11, spannable_data: SpannableData::GreenText },
-      Spannable { start: 595, len: 42, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://www.izazin.com/taikai/results?tag=".to_string() }) },
-      Spannable { start: 652, len: 35, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "http://yugiohtopdecks.com/decklists".to_string() }) },
+      Spannable { start: 581, len: 45, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://www.izazin.com/taikai/results?tag=遊戯王".to_string() }) },
+      Spannable { start: 632, len: 35, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "http://yugiohtopdecks.com/decklists".to_string() }) },
       Spannable { start: 668, len: 6, spannable_data: SpannableData::GreenText },
-      Spannable { start: 699, len: 29, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "http://blog.livedoor.jp/maxut".to_string() }) },
-      Spannable { start: 733, len: 26, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://ygorganization.com".to_string() }) },
+      Spannable { start: 679, len: 29, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "http://blog.livedoor.jp/maxut".to_string() }) },
+      Spannable { start: 713, len: 26, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://ygorganization.com".to_string() }) },
       Spannable { start: 740, len: 19, spannable_data: SpannableData::GreenText },
       Spannable { start: 1306, len: 23, spannable_data: SpannableData::GreenText },
-      Spannable { start: 1415, len: 29, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://challonge.com/dngcup8".to_string() }) },
-      Spannable { start: 1484, len: 34, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://challonge.com/dngfisherman".to_string() }) },
-      Spannable { start: 1554, len: 28, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://challonge.com/dngHAT".to_string() }) },
-      Spannable { start: 1625, len: 35, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://challonge.com/dngbattlecity".to_string() }) },
+      Spannable { start: 1361, len: 29, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://challonge.com/dngcup8".to_string() }) },
+      Spannable { start: 1428, len: 34, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://challonge.com/dngfisherman".to_string() }) },
+      Spannable { start: 1496, len: 28, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://challonge.com/dngHAT".to_string() }) },
+      Spannable { start: 1565, len: 35, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://challonge.com/dngbattlecity".to_string() }) },
     ];
 
     let post_parser_context = create_post_parser_context(
@@ -769,6 +769,44 @@ what?";
 
     run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
+
+  #[test]
+  fn post_parser_test_unicode_char_at_start() {
+    let post_comment_raw = "●/dng/ Battle City (June 27, 1600 UTC): https://challonge.com/dngbattlecity";
+    let expected_parsed_comment = "●/dng/ Battle City (June 27, 1600 UTC): https://challonge.com/dngbattlecity";
+
+    let expected_spannables = vec![
+      Spannable { start: 40, len: 35, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://challonge.com/dngbattlecity".to_string() }) },
+    ];
+
+    let post_parser_context = create_post_parser_context(
+      1235,
+      set_of!(),
+      set_of!()
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  #[test]
+  fn post_parser_test_unicode_char_at_end() {
+    let post_comment_raw = "/dng/ Battle City (June 27, 1600 UTC): https://www.izazin.com/taikai/results?tag=遊戯王";
+    let expected_parsed_comment = "/dng/ Battle City (June 27, 1600 UTC): https://www.izazin.com/taikai/results?tag=遊戯王";
+
+    let expected_spannables = vec![
+      Spannable { start: 39, len: 45, spannable_data: SpannableData::Link(PostLink::UrlLink { link: "https://www.izazin.com/taikai/results?tag=遊戯王".to_string() }) },
+    ];
+
+    let post_parser_context = create_post_parser_context(
+      1235,
+      set_of!(),
+      set_of!()
+    );
+
+    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+  }
+
+  // A general for the discussion of all non-x86 ISAs (RISC-V, SPARC, m68k, PA-RISC, MIPS, Itanium, PowerPC, etc.) retro and modern.<br><br>M68K:<br>http://m68k.info/<br>http://www.apollo-core.com/index.ht<wbr>m<br>https://thebrewingacademy.com/colle<wbr>ctions/atari-st-ste-mega<br>http://www.easy68k.com/paulrsm/<br>https://github.com/grovdata/Amiga_S<wbr>ources<br><br>MIPS:<br>https://www.embeddedplanet.com/prod<wbr>ucts_list/cavium-octeon-iii-develop<wbr>ment-board/<br>https://elinux.org/MIPS_Creator_CI2<wbr>0<br>http://www.sgistuff.net/software/ir<wbr>ixintro/index.html<br>https://sgi.neocities.org/<br><br>SuperH:<br>https://www.apnet.co.jp/product/ms1<wbr>04/ms104-sh4.html<br><br>Z80:<br>http://www.pc1500.com/<br>https://www.kickstarter.com/project<wbr>s/spectrumnext/zx-spectrum-next-iss<wbr>ue-2<br><br>6502:<br>http://6502.org/<br>https://gist.github.com/jblang/a397<wbr>48b3b0d3ceba05cbb92d0c56b3b2<br>https://www.commodorecomputerclub.c<wbr>om/resources/<br>http://home-2002.code-cop.org/c64/<br><br>RISC-V:<br>https://beagleboard.org/beaglev<br>https://bellard.org/tinyemu/<br>https://www.sifive.com/boards/hifiv<wbr>e-unmatched<br><br>SPARC:<br>https://sparc.org/<br><br>POWER/PowerPC:<br>https://www.nxp.com/design/qoriq-de<wbr>veloper-resources/qoriq-t2080-devel<wbr>opment-board:T2080RDB<br>https://www.powerpc-notebook.org<br>https://raptorcs.com/content/BK1SD1<wbr>/intro.html<br><br>VAX:<br>https://github.com/simh/simh<br>http://oboguev.net/vax_mp/<br><br>Alpha:<br>https://github.com/lenticularis39/a<wbr>xpbox<br><br>Multi-system FPGA:<br>https://github.com/mist-devel/mist-<wbr>board/wiki<br>https://github.com/MiSTer-devel/Mai<wbr>n_MiSTer/wiki<br><br>Misc.:<br>http://anycpu.org<br>https://opencores.org/<br><br>More:<br>https://wiki.installgentoo.com/wiki<wbr>//aig/_Alternative_ISA_General<br>https://mega.nz/file/0PplHSyL#eK_f2<wbr>ZSc2f0E8_RLUGz9nVn40myXhyiRDMU_FhgO<wbr>2wk<br><br>Previous thread: <a href=\"/g/thread/81521490#p81521490\" class=\"quotelink\">&gt;&gt;81521490</a>
 
   // TODO: Archive links (all supported archives)
   // TODO: Unicode text (Russian/some other?)
