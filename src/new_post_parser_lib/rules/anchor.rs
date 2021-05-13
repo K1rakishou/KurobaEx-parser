@@ -168,11 +168,11 @@ pub fn handle_single_post_quote(
 
   let mut quote_text_suffixes = String::new();
 
-  if post_parser_context.is_quoting_original_post(quote_post_id) {
+  if post_raw.is_quoting_original_post(quote_post_id) {
     quote_text_suffixes.push_str(OP_POSTFIX);
   }
 
-  if post_parser_context.is_my_reply_to_my_own_post(post_raw.post_id, quote_post_id) {
+  if post_parser_context.is_my_reply_to_my_own_post(post_raw.post_no(), quote_post_id) {
     quote_text_suffixes.push_str(ME_POSTFIX);
   } else if post_parser_context.is_reply_to_my_post(quote_post_id) {
     quote_text_suffixes.push_str(YOU_POSTFIX);

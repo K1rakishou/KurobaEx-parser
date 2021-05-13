@@ -13,16 +13,10 @@ pub mod post_parser {
 
   impl PostParserContext {
     pub fn new(
-      site_name: &str,
-      board_code: &str,
-      thread_id: u64,
       my_replies: HashSet<u64>,
       thread_posts: HashSet<u64>
     ) -> PostParserContext {
       return PostParserContext {
-        site_name: String::from(site_name),
-        board_code: String::from(board_code),
-        thread_id,
         my_replies,
         thread_posts
       }
@@ -40,10 +34,6 @@ pub mod post_parser {
       return self.my_replies.contains(&source_post_id) && self.my_replies.contains(&quote_post_id);
     }
 
-    pub fn is_quoting_original_post(&self, quote_post_id: u64) -> bool {
-      return self.thread_id == quote_post_id;
-    }
-
   }
 
   impl fmt::Display for ParsedPost {
@@ -54,17 +44,15 @@ pub mod post_parser {
 
   impl ParsedPost {
     pub fn new(
-      post_parser_context: &PostParserContext,
-      post_id: u64,
-      post_sub_id: u64,
+      post_raw: &PostRaw,
       post_comment_parsed: ParsedSpannableText
     ) -> ParsedPost {
       ParsedPost {
-        site_name: post_parser_context.site_name.clone(),
-        board_code: post_parser_context.board_code.clone(),
-        thread_id: post_parser_context.thread_id,
-        post_id,
-        post_sub_id,
+        site_name: post_raw.site_name().clone(),
+        board_code: post_raw.board_code().clone(),
+        thread_no: post_raw.thread_no(),
+        post_no: post_raw.post_no(),
+        post_sub_no: post_raw.post_sub_no(),
         post_comment_parsed
       }
     }
@@ -85,9 +73,7 @@ pub mod post_parser {
 
     pub fn parse_post(&self, post_raw: &PostRaw) -> ParsedPost {
       return ParsedPost::new(
-        self.post_parser_context,
-        post_raw.post_id,
-        post_raw.post_sub_id,
+        post_raw,
         self.parse_comment(post_raw)
       )
     }

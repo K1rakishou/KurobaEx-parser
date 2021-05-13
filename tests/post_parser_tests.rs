@@ -1,32 +1,40 @@
 #[cfg(test)]
 mod test_main {
-  use new_post_parser_lib::{PostParserContext, Spannable, PostRaw, PostParser, SpannableData, PostLink, set_of, Element};
+  use new_post_parser_lib::{PostParserContext, Spannable, PostRaw, PostParser, SpannableData, PostLink, set_of, Element, ThreadDescriptor, BoardDescriptor, SiteDescriptor, PostDescriptor};
   use std::collections::HashSet;
 
   fn create_post_parser_context(
-    thread_id: u64,
     my_replies: HashSet<u64>,
     thread_posts: HashSet<u64>
   ) -> PostParserContext {
     PostParserContext::new(
-      "4chan",
-      "g",
-      thread_id,
       my_replies,
       thread_posts
     )
   }
 
   fn run_test(
+    thread_id: u64,
     post_id: u64,
     post_parser_context: &PostParserContext,
     raw_comment: &str,
     expected_parsed_comment: &str,
     expected_spannables: &Vec<Spannable>
   ) {
+    let thread_descriptor = ThreadDescriptor {
+      board_descriptor: BoardDescriptor {
+        site_descriptor: SiteDescriptor { site_name: "4chan".to_string() },
+        board_code: "g".to_string()
+      },
+      thread_no: thread_id
+    };
+
     let post_raw = PostRaw {
-      post_id,
-      post_sub_id: 0u64,
+      post_descriptor: PostDescriptor {
+        thread_descriptor,
+        post_no: post_id,
+        post_sub_no: 0u64
+      },
       com: String::from(raw_comment)
     };
 
@@ -64,12 +72,11 @@ mod test_main {
     let expected_spannables = vec![];
 
     let post_parser_context = create_post_parser_context(
-      1234567890,
       set_of!(),
       set_of!()
     );
 
-    run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1234567890, 123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -80,12 +87,11 @@ mod test_main {
     let expected_spannables = vec![];
 
     let post_parser_context = create_post_parser_context(
-      1234567890,
       set_of!(),
       set_of!()
     );
 
-    run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1234567890, 123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -102,12 +108,11 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
     ];
 
     let post_parser_context = create_post_parser_context(
-      1234567890,
       set_of!(),
       set_of!()
     );
 
-    run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1234567890, 123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -124,12 +129,11 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
     ];
 
     let post_parser_context = create_post_parser_context(
-      1234567890,
       set_of!(),
       set_of!(333520145)
     );
 
-    run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1234567890, 123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -146,12 +150,11 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
     ];
 
     let post_parser_context = create_post_parser_context(
-      333520145,
       set_of!(),
       set_of!(333520145)
     );
 
-    run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(333520145, 123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -168,12 +171,11 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
     ];
 
     let post_parser_context = create_post_parser_context(
-      333520145,
       set_of!(333520145),
       set_of!(333520145)
     );
 
-    run_test(123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(333520145, 123456780, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -190,12 +192,11 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
     ];
 
     let post_parser_context = create_post_parser_context(
-      333520145,
       set_of!(333520145),
       set_of!(333520145)
     );
 
-    run_test(333520145, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(333520145, 333520145, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -212,12 +213,11 @@ Feel free to tell me specifically what I'm wrong about. I'll take one thing he s
     ];
 
     let post_parser_context = create_post_parser_context(
-      333520145,
       set_of!(333520145, 333520391),
       set_of!(333520145, 333520391)
     );
 
-    run_test(123, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(333520145, 123, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -233,12 +233,11 @@ stop you</span><br><s>Should I use a female version of my name for maximal self-
     ];
 
     let post_parser_context = create_post_parser_context(
-      333859392,
       set_of!(),
       set_of!(333890765)
     );
 
-    run_test(333890765, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(333859392, 333890765, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -253,12 +252,11 @@ stop you</span><br><s>Should I use a female version of my name for maximal self-
     ];
 
     let post_parser_context = create_post_parser_context(
-      1234,
       set_of!(),
       set_of!(333863078)
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1234, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -273,12 +271,11 @@ stop you</span><br><s>Should I use a female version of my name for maximal self-
     ];
 
     let post_parser_context = create_post_parser_context(
-      1234,
       set_of!(),
       set_of!(333918351)
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1234, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -293,12 +290,11 @@ stop you</span><br><s>Should I use a female version of my name for maximal self-
     ];
 
     let post_parser_context = create_post_parser_context(
-      1234,
       set_of!(),
       set_of!(333918351, 34511118)
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1234, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -352,12 +348,11 @@ https://www.youtube.com/watch?v=57tu8AtKf9E";
     ];
 
     let post_parser_context = create_post_parser_context(
-      1234,
       set_of!(),
       set_of!()
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1234, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -373,12 +368,11 @@ https://www.youtube.com/watch?v=57tu8AtKf9E";
     ];
 
     let post_parser_context = create_post_parser_context(
-      1234,
       set_of!(),
       set_of!(81423695)
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1234, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -433,12 +427,11 @@ https://www.youtube.com/watch?v=57tu8AtKf9E";
     ];
 
     let post_parser_context = create_post_parser_context(
-      81425984,
       set_of!(),
       set_of!(81425984)
     );
 
-    run_test(81425984, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(81425984, 81425984, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -462,12 +455,11 @@ what?";
     ];
 
     let post_parser_context = create_post_parser_context(
-      1235,
       set_of!(),
       set_of!()
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1235, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -483,12 +475,11 @@ what?";
     ];
 
     let post_parser_context = create_post_parser_context(
-      1235,
       set_of!(),
       set_of!(221656514u64)
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1235, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -514,12 +505,11 @@ what?";
     ];
 
     let post_parser_context = create_post_parser_context(
-      1235,
       set_of!(),
       set_of!()
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1235, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -532,12 +522,11 @@ what?";
     ];
 
     let post_parser_context = create_post_parser_context(
-      1235,
       set_of!(),
       set_of!(221655599u64)
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1235, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -569,12 +558,11 @@ what?";
     ];
 
     let post_parser_context = create_post_parser_context(
-      1235,
       set_of!(),
       set_of!(3878363u64)
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1235, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -588,12 +576,11 @@ what?";
     ];
 
     let post_parser_context = create_post_parser_context(
-      1235,
       set_of!(),
       set_of!()
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1235, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -607,12 +594,11 @@ what?";
     ];
 
     let post_parser_context = create_post_parser_context(
-      1235,
       set_of!(),
       set_of!()
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1235, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -627,12 +613,11 @@ what?";
     ];
 
     let post_parser_context = create_post_parser_context(
-      1235,
       set_of!(),
       set_of!()
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1235, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -648,12 +633,11 @@ what?";
     ];
 
     let post_parser_context = create_post_parser_context(
-      1235,
       set_of!(),
       set_of!(81478722u64)
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1235, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -668,12 +652,11 @@ what?";
     ];
 
     let post_parser_context = create_post_parser_context(
-      1235,
       set_of!(),
       set_of!()
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1235, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -762,12 +745,11 @@ what?";
     ];
 
     let post_parser_context = create_post_parser_context(
-      1235,
       set_of!(),
       set_of!()
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1235, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -780,12 +762,11 @@ what?";
     ];
 
     let post_parser_context = create_post_parser_context(
-      1235,
       set_of!(),
       set_of!()
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1235, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -798,12 +779,11 @@ what?";
     ];
 
     let post_parser_context = create_post_parser_context(
-      1235,
       set_of!(),
       set_of!()
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1235, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -829,12 +809,11 @@ what?";
     ];
 
     let post_parser_context = create_post_parser_context(
-      1235,
       set_of!(),
       set_of!()
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1235, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   #[test]
@@ -858,12 +837,11 @@ what?";
     ];
 
     let post_parser_context = create_post_parser_context(
-      1235,
       set_of!(),
       set_of!()
     );
 
-    run_test(1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
+    run_test(1235, 1235, &post_parser_context, post_comment_raw, expected_parsed_comment, &expected_spannables);
   }
 
   // A general for the discussion of all non-x86 ISAs (RISC-V, SPARC, m68k, PA-RISC, MIPS, Itanium, PowerPC, etc.) retro and modern.<br><br>M68K:<br>http://m68k.info/<br>http://www.apollo-core.com/index.ht<wbr>m<br>https://thebrewingacademy.com/colle<wbr>ctions/atari-st-ste-mega<br>http://www.easy68k.com/paulrsm/<br>https://github.com/grovdata/Amiga_S<wbr>ources<br><br>MIPS:<br>https://www.embeddedplanet.com/prod<wbr>ucts_list/cavium-octeon-iii-develop<wbr>ment-board/<br>https://elinux.org/MIPS_Creator_CI2<wbr>0<br>http://www.sgistuff.net/software/ir<wbr>ixintro/index.html<br>https://sgi.neocities.org/<br><br>SuperH:<br>https://www.apnet.co.jp/product/ms1<wbr>04/ms104-sh4.html<br><br>Z80:<br>http://www.pc1500.com/<br>https://www.kickstarter.com/project<wbr>s/spectrumnext/zx-spectrum-next-iss<wbr>ue-2<br><br>6502:<br>http://6502.org/<br>https://gist.github.com/jblang/a397<wbr>48b3b0d3ceba05cbb92d0c56b3b2<br>https://www.commodorecomputerclub.c<wbr>om/resources/<br>http://home-2002.code-cop.org/c64/<br><br>RISC-V:<br>https://beagleboard.org/beaglev<br>https://bellard.org/tinyemu/<br>https://www.sifive.com/boards/hifiv<wbr>e-unmatched<br><br>SPARC:<br>https://sparc.org/<br><br>POWER/PowerPC:<br>https://www.nxp.com/design/qoriq-de<wbr>veloper-resources/qoriq-t2080-devel<wbr>opment-board:T2080RDB<br>https://www.powerpc-notebook.org<br>https://raptorcs.com/content/BK1SD1<wbr>/intro.html<br><br>VAX:<br>https://github.com/simh/simh<br>http://oboguev.net/vax_mp/<br><br>Alpha:<br>https://github.com/lenticularis39/a<wbr>xpbox<br><br>Multi-system FPGA:<br>https://github.com/mist-devel/mist-<wbr>board/wiki<br>https://github.com/MiSTer-devel/Mai<wbr>n_MiSTer/wiki<br><br>Misc.:<br>http://anycpu.org<br>https://opencores.org/<br><br>More:<br>https://wiki.installgentoo.com/wiki<wbr>//aig/_Alternative_ISA_General<br>https://mega.nz/file/0PplHSyL#eK_f2<wbr>ZSc2f0E8_RLUGz9nVn40myXhyiRDMU_FhgO<wbr>2wk<br><br>Previous thread: <a href=\"/g/thread/81521490#p81521490\" class=\"quotelink\">&gt;&gt;81521490</a>

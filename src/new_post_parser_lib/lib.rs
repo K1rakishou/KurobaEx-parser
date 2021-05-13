@@ -65,11 +65,79 @@ impl TextPart {
   }
 }
 
+#[derive(Debug, Eq, PartialEq)]
+pub struct SiteDescriptor {
+  pub site_name: String
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct BoardDescriptor {
+  pub site_descriptor: SiteDescriptor,
+  pub board_code: String
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct ThreadDescriptor {
+  pub board_descriptor: BoardDescriptor,
+  pub thread_no: u64
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct PostDescriptor {
+  pub thread_descriptor: ThreadDescriptor,
+  pub post_no: u64,
+  pub post_sub_no: u64,
+}
+
 #[derive(Debug)]
 pub struct PostRaw {
-  pub post_id: u64,
-  pub post_sub_id: u64,
+  pub post_descriptor: PostDescriptor,
   pub com: String,
+}
+
+impl PostRaw {
+  pub fn site_name(&self) -> &String {
+    return &self.post_descriptor.thread_descriptor.board_descriptor.site_descriptor.site_name;
+  }
+
+  pub fn board_code(&self) -> &String {
+    return &self.post_descriptor.thread_descriptor.board_descriptor.board_code;
+  }
+
+  pub fn thread_no(&self) -> u64 {
+    return self.post_descriptor.thread_descriptor.thread_no;
+  }
+
+  pub fn post_no(&self) -> u64 {
+    return self.post_descriptor.post_no;
+  }
+
+  pub fn post_sub_no(&self) -> u64 {
+    return self.post_descriptor.post_sub_no;
+  }
+
+  pub fn is_quoting_original_post(&self, quote_post_id: u64) -> bool {
+    return self.thread_no() == quote_post_id;
+  }
+
+  pub fn new(site_name: &str, board_code: &str, thread_no: u64, post_no: u64, post_sub_no: u64, raw_comment: &str) -> PostRaw {
+    let thread_descriptor = ThreadDescriptor {
+      board_descriptor: BoardDescriptor {
+        site_descriptor: SiteDescriptor { site_name: site_name.to_string() },
+        board_code: board_code.to_string()
+      },
+      thread_no
+    };
+
+    return PostRaw {
+      post_descriptor: PostDescriptor {
+        thread_descriptor,
+        post_no,
+        post_sub_no
+      },
+      com: String::from(raw_comment)
+    };
+  }
 }
 
 #[derive(Debug)]
@@ -79,9 +147,6 @@ pub struct ThreadRaw {
 
 #[derive(Debug)]
 pub struct PostParserContext {
-  site_name: String,
-  board_code: String,
-  thread_id: u64,
   my_replies: HashSet<u64>,
   thread_posts: HashSet<u64>
 }
@@ -121,9 +186,9 @@ pub struct ParsingRule {
 pub struct ParsedPost {
   pub site_name: String,
   pub board_code: String,
-  pub thread_id: u64,
-  pub post_id: u64,
-  pub post_sub_id: u64,
+  pub thread_no: u64,
+  pub post_no: u64,
+  pub post_sub_no: u64,
   pub post_comment_parsed: ParsedSpannableText,
 }
 

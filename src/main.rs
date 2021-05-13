@@ -8,18 +8,11 @@ fn main() {
 
   let thread_raw = ThreadRaw {
     posts: vec![
-      PostRaw {
-        post_id: 333696415u64,
-        post_sub_id: 0u64,
-        com: String::from(post_comment_raw)
-      }
+      PostRaw::new("4chan", "g", 333696415u64, 333696415u64, 0u64, post_comment_raw)
     ]
   };
 
   let post_parser_context = PostParserContext::new(
-    "4chan",
-    "g",
-    333696415u64,
     set_of!(),
     set_of!(333863078)
   );
