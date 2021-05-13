@@ -89,6 +89,24 @@ pub struct PostDescriptor {
   pub post_sub_no: u64,
 }
 
+impl PostDescriptor {
+  pub fn new(site_name: &str, board_code: &str, thread_no: u64, post_no: u64, post_sub_no: u64) -> PostDescriptor {
+    let thread_descriptor = ThreadDescriptor {
+      board_descriptor: BoardDescriptor {
+        site_descriptor: SiteDescriptor { site_name: site_name.to_string() },
+        board_code: board_code.to_string()
+      },
+      thread_no
+    };
+
+    return PostDescriptor {
+      thread_descriptor,
+      post_no,
+      post_sub_no
+    };
+  }
+}
+
 #[derive(Debug)]
 pub struct PostRaw {
   pub post_descriptor: PostDescriptor,
@@ -184,11 +202,7 @@ pub struct ParsingRule {
 }
 
 pub struct ParsedPost {
-  pub site_name: String,
-  pub board_code: String,
-  pub thread_no: u64,
-  pub post_no: u64,
-  pub post_sub_no: u64,
+  pub post_descriptor: PostDescriptor,
   pub post_comment_parsed: ParsedSpannableText,
 }
 

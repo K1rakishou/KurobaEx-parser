@@ -1,5 +1,5 @@
 pub mod post_parser {
-  use crate::{PostRaw, PostParserContext, PostParser, CommentParser, ParsedPost, ParsedSpannableText, Spannable, SpannableData, PostLink, HtmlParser, TextPart};
+  use crate::{PostRaw, PostParserContext, PostParser, CommentParser, ParsedPost, ParsedSpannableText, Spannable, SpannableData, PostLink, HtmlParser, TextPart, PostDescriptor};
   use crate::html_parser::node::Node;
   use std::collections::HashSet;
   use std::fmt;
@@ -47,12 +47,16 @@ pub mod post_parser {
       post_raw: &PostRaw,
       post_comment_parsed: ParsedSpannableText
     ) -> ParsedPost {
-      ParsedPost {
-        site_name: post_raw.site_name().clone(),
-        board_code: post_raw.board_code().clone(),
-        thread_no: post_raw.thread_no(),
-        post_no: post_raw.post_no(),
-        post_sub_no: post_raw.post_sub_no(),
+      let post_descriptor = PostDescriptor::new(
+        post_raw.site_name(),
+        post_raw.board_code(),
+        post_raw.thread_no(),
+        post_raw.post_no(),
+        post_raw.post_sub_no()
+      );
+
+      return ParsedPost {
+        post_descriptor,
         post_comment_parsed
       }
     }
