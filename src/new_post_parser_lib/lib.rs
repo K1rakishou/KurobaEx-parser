@@ -90,6 +90,26 @@ pub struct PostDescriptor {
 }
 
 impl PostDescriptor {
+  pub fn site_name(&self) -> &String {
+    return &self.thread_descriptor.board_descriptor.site_descriptor.site_name;
+  }
+
+  pub fn board_code(&self) -> &String {
+    return &self.thread_descriptor.board_descriptor.board_code;
+  }
+
+  pub fn thread_no(&self) -> u64 {
+    return self.thread_descriptor.thread_no;
+  }
+
+  pub fn post_no(&self) -> u64 {
+    return self.post_no;
+  }
+
+  pub fn post_sub_no(&self) -> u64 {
+    return self.post_sub_no;
+  }
+
   pub fn new(site_name: &str, board_code: &str, thread_no: u64, post_no: u64, post_sub_no: u64) -> PostDescriptor {
     let thread_descriptor = ThreadDescriptor {
       board_descriptor: BoardDescriptor {
@@ -115,19 +135,19 @@ pub struct PostRaw {
 
 impl PostRaw {
   pub fn site_name(&self) -> &String {
-    return &self.post_descriptor.thread_descriptor.board_descriptor.site_descriptor.site_name;
+    return &self.post_descriptor.site_name();
   }
 
   pub fn board_code(&self) -> &String {
-    return &self.post_descriptor.thread_descriptor.board_descriptor.board_code;
+    return &self.post_descriptor.board_code();
   }
 
   pub fn thread_no(&self) -> u64 {
-    return self.post_descriptor.thread_descriptor.thread_no;
+    return self.post_descriptor.thread_no();
   }
 
   pub fn post_no(&self) -> u64 {
-    return self.post_descriptor.post_no;
+    return self.post_descriptor.post_no();
   }
 
   pub fn post_sub_no(&self) -> u64 {
